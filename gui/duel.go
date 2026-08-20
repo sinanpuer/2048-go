@@ -57,22 +57,30 @@ func buildBotSetup(win fyne.Window) fyne.CanvasObject {
 }
 
 type duelUI struct {
-	win          fyne.Window
-	duration     int
-	difficulty   BotDifficulty
-	playerBoard  Board
-	botBoard     Board
-	playerScore  int
-	botScore     int
-	playerBW     *boardWidget
-	botBW        *boardWidget
-	playerScoreL *widget.Label
-	botScoreL    *widget.Label
-	timeL        *widget.Label
-	startedAt    time.Time
-	finished     bool
-	stopCh       chan struct{}
-	stopOnce     sync.Once
+	win           fyne.Window
+	duration      int
+	difficulty    BotDifficulty
+	playerBoard   Board
+	botBoard      Board
+	playerScore   int
+	botScore      int
+	playerCombo   int
+	botCombo      int
+	playerStuck   bool
+	botStuck      bool
+	playerBW      *boardWidget
+	botBW         *boardWidget
+	playerScoreL  *widget.Label
+	botScoreL     *widget.Label
+	playerComboL  *widget.Label
+	botComboL     *widget.Label
+	playerStatusL *widget.Label
+	botStatusL    *widget.Label
+	timeL         *widget.Label
+	startedAt     time.Time
+	finished      bool
+	stopCh        chan struct{}
+	stopOnce      sync.Once
 }
 
 func startDuel(win fyne.Window, duration int, difficulty BotDifficulty) {
@@ -89,6 +97,10 @@ func startDuel(win fyne.Window, duration int, difficulty BotDifficulty) {
 	d.botBW = newBoardWidget(64)
 	d.playerScoreL = widget.NewLabel("")
 	d.botScoreL = widget.NewLabel("")
+	d.playerComboL = widget.NewLabel("")
+	d.botComboL = widget.NewLabel("")
+	d.playerStatusL = widget.NewLabel("")
+	d.botStatusL = widget.NewLabel("")
 	d.timeL = widget.NewLabelWithStyle(fmt.Sprintf("%ds", duration), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
 	backBtn := widget.NewButton("Abbrechen", func() {
@@ -100,11 +112,15 @@ func startDuel(win fyne.Window, duration int, difficulty BotDifficulty) {
 	playerPanel := container.NewVBox(
 		widget.NewLabelWithStyle("Du", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		d.playerScoreL,
+		d.playerComboL,
+		d.playerStatusL,
 		container.NewPadded(d.playerBW.container),
 	)
 	botPanel := container.NewVBox(
 		widget.NewLabelWithStyle(fmt.Sprintf("Bot (%s)", botDifficultyName(difficulty)), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		d.botScoreL,
+		d.botComboL,
+		d.botStatusL,
 		container.NewPadded(d.botBW.container),
 	)
 
@@ -149,10 +165,41 @@ func (d *duelUI) render() {
 	d.botBW.render(d.botBoard)
 	d.playerScoreL.SetText(fmt.Sprintf("Punkte: %d", d.playerScore))
 	d.botScoreL.SetText(fmt.Sprintf("Punkte: %d", d.botScore))
+
+	if d.playerCombo > 0 {
+		d.playerComboL.SetText(fmt.Sprintf("Combo x%d (%.1fx)", d.playerCombo, comboMultiplier(d.playerCombo)))
+	} else {
+		d.playerComboL.SetText("")
+	}
+	if d.botCombo > 0 {
+		d.botComboL.SetText(fmt.Sprintf("Combo x%d (%.1fx)", d.botCombo, comboMultiplier(d.botCombo)))
+	} else {
+		d.botComboL.SetText("")
+	}
+
+	if d.playerStuck {
+		d.playerStatusL.SetText("Game Over — kein Zug mehr!")
+	} else {
+		d.playerStatusL.SetText("")
+	}
+	if d.botStuck {
+		d.botStatusL.SetText("Game Over — kein Zug mehr!")
+	} else {
+		d.botStatusL.SetText("")
+	}
+}
+
+func (d *duelUI) checkBothStuck() {
+	if d.finished {
+		return
+	}
+	if d.playerStuck && d.botStuck {
+		d.finish()
+	}
 }
 
 func (d *duelUI) playerMove(fn func(Board) (Board, bool, int)) {
-	if d.finished {
+	if d.finished || d.playerStuck {
 		return
 	}
 	nb, moved, gained := fn(d.playerBoard)
@@ -160,9 +207,14 @@ func (d *duelUI) playerMove(fn func(Board) (Board, bool, int)) {
 		return
 	}
 	d.playerBoard = nb
+	d.playerCombo, gained = applyCombo(d.playerCombo, gained)
 	d.playerScore += gained
 	spawnTile(&d.playerBoard, ModeRandomizer)
+	if !hasMoves(d.playerBoard) {
+		d.playerStuck = true
+	}
 	d.render()
+	d.checkBothStuck()
 }
 
 func (d *duelUI) startBotLoop() {
@@ -176,21 +228,32 @@ func (d *duelUI) startBotLoop() {
 				return
 			case <-ticker.C:
 				fyne.Do(func() {
-					if d.finished {
+					if d.finished || d.botStuck {
 						return
 					}
 					mv, ok := botPickMove(d.botBoard, d.difficulty)
 					if !ok {
+						d.botStuck = true
+						d.render()
+						d.checkBothStuck()
 						return
 					}
 					nb, moved, gained := mv(d.botBoard)
 					if !moved {
+						d.botStuck = true
+						d.render()
+						d.checkBothStuck()
 						return
 					}
 					d.botBoard = nb
+					d.botCombo, gained = applyCombo(d.botCombo, gained)
 					d.botScore += gained
 					spawnTile(&d.botBoard, ModeRandomizer)
+					if !hasMoves(d.botBoard) {
+						d.botStuck = true
+					}
 					d.render()
+					d.checkBothStuck()
 				})
 			}
 		}

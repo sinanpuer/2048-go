@@ -15,6 +15,7 @@ import (
 )
 
 var allLevels = generateLevels(totalLevels)
+var allPuzzleLevels = generatePuzzleLevels(totalPuzzleLevels)
 var progress = loadProgress()
 var highscores = loadHighscores()
 
@@ -25,6 +26,7 @@ type gameUI struct {
 	mode    Mode
 	board   Board
 	score   int
+	combo   int
 	won     bool
 	over    bool
 	newHigh bool
@@ -32,6 +34,7 @@ type gameUI struct {
 	scoreL  *widget.Label
 	modeL   *widget.Label
 	highL   *widget.Label
+	comboL  *widget.Label
 	msgL    *widget.Label
 }
 
@@ -40,10 +43,13 @@ func (g *gameUI) refresh() {
 	g.scoreL.SetText(fmt.Sprintf("Punkte: %d", g.score))
 	g.modeL.SetText(fmt.Sprintf("Modus: %s", modeName(g.mode)))
 	g.highL.SetText(fmt.Sprintf("Highscore: %d", highscores.get(g.mode)))
+	if g.combo > 0 {
+		g.comboL.SetText(fmt.Sprintf("Combo x%d (%.1fx)", g.combo, comboMultiplier(g.combo)))
+	} else {
+		g.comboL.SetText("")
+	}
 
 	switch {
-	case g.over:
-		g.msgL.SetText("Game Over! Kein Zug mehr moeglich.")
 	case g.newHigh:
 		g.msgL.SetText("Neuer Highscore!")
 	case g.won && g.mode != ModeEndless:
@@ -62,6 +68,7 @@ func (g *gameUI) applyMove(fn func(Board) (Board, bool, int)) {
 		return
 	}
 	g.board = nb
+	g.combo, gained = applyCombo(g.combo, gained)
 	g.score += gained
 	spawnTile(&g.board, g.mode)
 	if highscores.update(g.mode, g.score) {
@@ -70,10 +77,47 @@ func (g *gameUI) applyMove(fn func(Board) (Board, bool, int)) {
 	if !g.won && hasWon(g.board) {
 		g.won = true
 	}
+	g.refresh()
+
 	if !hasMoves(g.board) {
 		g.over = true
+		g.showGameOver()
 	}
-	g.refresh()
+}
+
+func (g *gameUI) showGameOver() {
+	win := g.win
+	win.Canvas().SetOnTypedKey(nil)
+
+	title := widget.NewLabelWithStyle("Game Over!", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	scoreLine := widget.NewLabel(fmt.Sprintf("Punkte: %d", g.score))
+	scoreLine.Alignment = fyne.TextAlignCenter
+
+	restartBtn := widget.NewButton("Neustart", func() {
+		win.Canvas().SetOnTypedKey(nil)
+		startGame(win, g.mode)
+	})
+	menuBtn := widget.NewButton("Hauptmenue", func() {
+		win.Canvas().SetOnTypedKey(nil)
+		win.SetContent(buildMenu(win))
+	})
+
+	panel := container.NewVBox(
+		title, scoreLine, widget.NewSeparator(),
+		container.NewCenter(container.NewHBox(restartBtn, menuBtn)),
+	)
+
+	boardBG := canvas.NewRectangle(color.NRGBA{R: 0xbb, G: 0xad, B: 0xa0, A: 0xff})
+	boardArea := container.NewStack(boardBG, container.NewPadded(g.bw.container))
+
+	overlay := canvas.NewRectangle(color.NRGBA{R: 0x00, G: 0x00, B: 0x00, A: 0xb0})
+
+	content := container.NewStack(
+		container.NewCenter(boardArea),
+		overlay,
+		container.NewCenter(container.NewPadded(panel)),
+	)
+	win.SetContent(content)
 }
 
 func startGame(win fyne.Window, mode Mode) {
@@ -82,6 +126,7 @@ func startGame(win fyne.Window, mode Mode) {
 	g.scoreL = widget.NewLabel("")
 	g.modeL = widget.NewLabel("")
 	g.highL = widget.NewLabel("")
+	g.comboL = widget.NewLabel("")
 	g.msgL = widget.NewLabel("")
 	g.msgL.Alignment = fyne.TextAlignCenter
 
@@ -93,6 +138,7 @@ func startGame(win fyne.Window, mode Mode) {
 	top := container.NewVBox(
 		container.NewHBox(g.modeL, layout.NewSpacer(), backBtn),
 		container.NewHBox(g.scoreL, layout.NewSpacer(), g.highL),
+		container.NewHBox(g.comboL),
 	)
 
 	boardBG := canvas.NewRectangle(color.NRGBA{R: 0xbb, G: 0xad, B: 0xa0, A: 0xff})
@@ -156,8 +202,11 @@ func buildMenu(win fyne.Window) fyne.CanvasObject {
 	btnDuel := widget.NewButton("KI-Duell (gegen Bot)", goTo(func() {
 		win.SetContent(buildBotSetup(win))
 	}))
+	btnPuzzle := widget.NewButton(fmt.Sprintf("Raetsel-Modus (%d Raetsel)", totalPuzzleLevels), goTo(func() {
+		win.SetContent(buildPuzzleSelect(win))
+	}))
 
-	buttons := container.NewVBox(btnNormal, btnRandom, btnEndless, btnLevels, btnDuel)
+	buttons := container.NewVBox(btnNormal, btnRandom, btnEndless, btnLevels, btnPuzzle, btnDuel)
 
 	highscoreLine := canvas.NewText(
 		fmt.Sprintf("Bestwerte — Normal: %d   Randomizer: %d   Endlos: %d",

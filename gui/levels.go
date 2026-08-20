@@ -77,18 +77,18 @@ func generateLevels(n int) []LevelDef {
 }
 
 // linearGoal interpolates a value between start (at level 1) and end (at
-// the final level) in a straight line, so difficulty ramps up steadily
-// instead of exploding late-game.
-func linearGoal(level int, start, end float64) float64 {
-	if totalLevels <= 1 {
+// the final level, out of total levels) in a straight line, so difficulty
+// ramps up steadily instead of exploding late-game.
+func linearGoal(level, total int, start, end float64) float64 {
+	if total <= 1 {
 		return start
 	}
-	t := float64(level-1) / float64(totalLevels-1)
+	t := float64(level-1) / float64(total-1)
 	return start + (end-start)*t
 }
 
 func scoreGoalForLevel(level int) int {
-	return roundTo(int(linearGoal(level, 60, 9200)), 10)
+	return roundTo(int(linearGoal(level, totalLevels, 60, 9200)), 10)
 }
 
 func tileGoalForLevel(level int) int {
@@ -116,7 +116,7 @@ func timeLimitForLevel(level int) int {
 }
 
 func timedScoreGoalForLevel(level int) int {
-	return roundTo(int(linearGoal(level, 30, 1400)), 5)
+	return roundTo(int(linearGoal(level, totalLevels, 30, 1400)), 5)
 }
 
 func timedTileGoalForLevel(level int) int {
@@ -138,7 +138,8 @@ func roundTo(v, step int) int {
 // ---------- progress persistence ----------
 
 type Progress struct {
-	Completed map[int]bool `json:"completed"`
+	Completed       map[int]bool `json:"completed"`
+	PuzzleCompleted map[int]bool `json:"puzzleCompleted"`
 }
 
 func progressFilePath() (string, error) {
@@ -154,7 +155,7 @@ func progressFilePath() (string, error) {
 }
 
 func loadProgress() *Progress {
-	p := &Progress{Completed: map[int]bool{}}
+	p := &Progress{Completed: map[int]bool{}, PuzzleCompleted: map[int]bool{}}
 	path, err := progressFilePath()
 	if err != nil {
 		return p
@@ -166,6 +167,9 @@ func loadProgress() *Progress {
 	_ = json.Unmarshal(data, p)
 	if p.Completed == nil {
 		p.Completed = map[int]bool{}
+	}
+	if p.PuzzleCompleted == nil {
+		p.PuzzleCompleted = map[int]bool{}
 	}
 	return p
 }
@@ -191,4 +195,15 @@ func (p *Progress) isUnlocked(levelNumber int) bool {
 
 func (p *Progress) markCompleted(levelNumber int) {
 	p.Completed[levelNumber] = true
+}
+
+func (p *Progress) isPuzzleUnlocked(levelNumber int) bool {
+	if levelNumber <= 1 {
+		return true
+	}
+	return p.PuzzleCompleted[levelNumber-1]
+}
+
+func (p *Progress) markPuzzleCompleted(levelNumber int) {
+	p.PuzzleCompleted[levelNumber] = true
 }

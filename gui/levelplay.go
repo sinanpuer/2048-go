@@ -18,9 +18,11 @@ type levelUI struct {
 	def       LevelDef
 	board     Board
 	score     int
+	combo     int
 	bw        *boardWidget
 	scoreL    *widget.Label
 	timeL     *widget.Label
+	comboL    *widget.Label
 	startedAt time.Time
 	finished  bool
 	stopTimer chan struct{}
@@ -41,6 +43,7 @@ func startLevel(win fyne.Window, levelNumber int) {
 
 	lu.scoreL = widget.NewLabel("")
 	lu.timeL = widget.NewLabel("")
+	lu.comboL = widget.NewLabel("")
 	goalL := widget.NewLabelWithStyle(def.Title(), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
 	backBtn := widget.NewButton("Zurueck zur Levelauswahl", func() {
@@ -53,6 +56,7 @@ func startLevel(win fyne.Window, levelNumber int) {
 		widget.NewLabelWithStyle(fmt.Sprintf("Level %d", def.Number), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		goalL,
 		container.NewHBox(lu.scoreL, layout.NewSpacer(), lu.timeL, layout.NewSpacer(), backBtn),
+		container.NewHBox(lu.comboL),
 		widget.NewSeparator(),
 	)
 
@@ -89,6 +93,11 @@ func startLevel(win fyne.Window, levelNumber int) {
 func (lu *levelUI) render() {
 	lu.bw.render(lu.board)
 	lu.scoreL.SetText(fmt.Sprintf("Punkte: %d", lu.score))
+	if lu.combo > 0 {
+		lu.comboL.SetText(fmt.Sprintf("Combo x%d (%.1fx)", lu.combo, comboMultiplier(lu.combo)))
+	} else {
+		lu.comboL.SetText("")
+	}
 }
 
 func (lu *levelUI) applyMove(fn func(Board) (Board, bool, int)) {
@@ -100,6 +109,7 @@ func (lu *levelUI) applyMove(fn func(Board) (Board, bool, int)) {
 		return
 	}
 	lu.board = nb
+	lu.combo, gained = applyCombo(lu.combo, gained)
 	lu.score += gained
 	spawnTile(&lu.board, ModeRandomizer)
 	lu.render()
