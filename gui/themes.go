@@ -39,7 +39,7 @@ func cellFactory(theme string) func(float32) tileCell {
 
 // ---------- stone: brick-textured tile ----------
 
-var stoneMortar = color.NRGBA{R: 0x33, G: 0x30, B: 0x2a, A: 0xff}
+var stoneMortar = color.NRGBA{R: 0x4a, G: 0x45, B: 0x3c, A: 0xff}
 
 func stoneColors(v int) (base, fg color.Color) {
 	dark := color.NRGBA{R: 0x2a, G: 0x27, B: 0x22, A: 0xff}
@@ -90,7 +90,7 @@ func newStoneCell(cellPx float32) tileCell {
 	mortar.Resize(fyne.NewSize(cellPx, cellPx))
 	mortar.Move(fyne.NewPos(0, 0))
 
-	gap := cellPx * 0.05
+	gap := cellPx * 0.035
 	rowH := (cellPx - gap*3) / 2
 	w1 := (cellPx - gap*3) / 2
 	half := (w1 - gap) / 2
@@ -212,10 +212,9 @@ func newCandyCell(cellPx float32) tileCell {
 	}
 
 	base := mkCircle(0)
-	ring1 := mkCircle(d * 0.16)
-	ring2 := mkCircle(d * 0.32)
-	ring3 := mkCircle(d * 0.48)
-	rings := []*canvas.Circle{ring1, ring2, ring3}
+	ringOuter := mkCircle(d * 0.08)
+	ringCenter := mkCircle(d * 0.22)
+	rings := []*canvas.Circle{ringOuter, ringCenter}
 
 	text := canvas.NewText("", color.White)
 	text.Alignment = fyne.TextAlignCenter
@@ -224,7 +223,7 @@ func newCandyCell(cellPx float32) tileCell {
 
 	flash := newFlashOverlay()
 
-	layer := container.NewWithoutLayout(base, ring1, ring2, ring3)
+	layer := container.NewWithoutLayout(base, ringOuter, ringCenter)
 	root := container.NewStack(sizer, layer, container.NewCenter(text), flash.object())
 	return &candyCell{base: base, rings: rings, text: text, flash: flash, root: root}
 }
@@ -244,12 +243,14 @@ func (c *candyCell) setValue(v int) {
 		}
 		c.text.Text = ""
 	} else {
+		// Only the outer band is white for the swirl look; the band right
+		// behind the text always matches base, so fg (chosen to contrast
+		// with base) stays legible no matter the tile value.
 		white := color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}
-		alt := []color.NRGBA{white, baseN, white}
-		for i, r := range c.rings {
-			r.FillColor = alt[i]
-			r.Refresh()
-		}
+		c.rings[0].FillColor = white
+		c.rings[0].Refresh()
+		c.rings[1].FillColor = baseN
+		c.rings[1].Refresh()
 		c.text.Text = fmt.Sprintf("%d", v)
 	}
 	c.text.Color = fg

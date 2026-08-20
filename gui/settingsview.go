@@ -12,20 +12,30 @@ func buildSettings(win fyne.Window) fyne.CanvasObject {
 	animCheck := widget.NewCheck("Dynamik (Animationen)", nil)
 	animCheck.SetChecked(settings.Animations)
 
-	themeNames := []string{themeDisplayName(ThemeClassic), themeDisplayName(ThemeStone), themeDisplayName(ThemeCandy)}
-	themeGroup := widget.NewRadioGroup(themeNames, nil)
-	themeGroup.Selected = themeDisplayName(settings.Theme)
+	selectedTheme := settings.Theme
+	themes := []string{ThemeClassic, ThemeStone, ThemeCandy}
+	cards := make([]*themeCard, len(themes))
 
-	preview := func(theme string) fyne.CanvasObject {
+	selectTheme := func(theme string) {
+		selectedTheme = theme
+		for i, t := range themes {
+			cards[i].setSelected(t == theme)
+		}
+	}
+
+	for i, theme := range themes {
+		theme := theme
 		cell := cellFactory(theme)(52)
 		cell.setValue(2048)
-		return container.NewPadded(cell.object())
+		preview := container.NewVBox(
+			container.NewCenter(cell.object()),
+			widget.NewLabel(themeDisplayName(theme)),
+		)
+		cards[i] = newThemeCard(preview, func() { selectTheme(theme) })
 	}
-	previews := container.NewGridWithColumns(3,
-		container.NewCenter(preview(ThemeClassic)),
-		container.NewCenter(preview(ThemeStone)),
-		container.NewCenter(preview(ThemeCandy)),
-	)
+	selectTheme(selectedTheme)
+
+	previews := container.NewGridWithColumns(3, cards[0], cards[1], cards[2])
 
 	fpsNames := []string{"30 FPS", "60 FPS", "Unbegrenzt"}
 	fpsGroup := widget.NewRadioGroup(fpsNames, nil)
@@ -40,15 +50,7 @@ func buildSettings(win fyne.Window) fyne.CanvasObject {
 
 	saveBtn := widget.NewButton("Speichern", func() {
 		settings.Animations = animCheck.Checked
-
-		switch themeGroup.Selected {
-		case themeDisplayName(ThemeStone):
-			settings.Theme = ThemeStone
-		case themeDisplayName(ThemeCandy):
-			settings.Theme = ThemeCandy
-		default:
-			settings.Theme = ThemeClassic
-		}
+		settings.Theme = selectedTheme
 
 		switch fpsGroup.Selected {
 		case "30 FPS":
@@ -73,7 +75,6 @@ func buildSettings(win fyne.Window) fyne.CanvasObject {
 		widget.NewSeparator(),
 		widget.NewLabel("Design-Thema"),
 		previews,
-		themeGroup,
 		widget.NewSeparator(),
 		widget.NewLabel("Bildwiederholrate"),
 		fpsGroup,
