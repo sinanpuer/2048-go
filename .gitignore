@@ -1,3 +1,4 @@
 cli/2048game
 gui/2048gui
 .DS_Store
+dist/
