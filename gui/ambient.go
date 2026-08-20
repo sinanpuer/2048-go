@@ -37,7 +37,7 @@ func (ab *ambientBoard) start() {
 
 	go func() {
 		moves := []func(Board) (Board, bool, int){moveUp, moveDown, moveLeft, moveRight}
-		ticker := time.NewTicker(650 * time.Millisecond)
+		ticker := time.NewTicker(time.Duration(settings.ambientTickIntervalMs()) * time.Millisecond)
 		defer ticker.Stop()
 
 		for {

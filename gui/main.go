@@ -18,6 +18,7 @@ var allLevels = generateLevels(totalLevels)
 var allPuzzleLevels = generatePuzzleLevels(totalPuzzleLevels)
 var progress = loadProgress()
 var highscores = loadHighscores()
+var settings = loadSettings()
 
 // ---------- free-play GUI ----------
 
@@ -205,8 +206,11 @@ func buildMenu(win fyne.Window) fyne.CanvasObject {
 	btnPuzzle := widget.NewButton(fmt.Sprintf("Raetsel-Modus (%d Raetsel)", totalPuzzleLevels), goTo(func() {
 		win.SetContent(buildPuzzleSelect(win))
 	}))
+	btnSettings := widget.NewButton("Einstellungen", goTo(func() {
+		win.SetContent(buildSettings(win))
+	}))
 
-	buttons := container.NewVBox(btnNormal, btnRandom, btnEndless, btnLevels, btnPuzzle, btnDuel)
+	buttons := container.NewVBox(btnNormal, btnRandom, btnEndless, btnLevels, btnPuzzle, btnDuel, btnSettings)
 
 	highscoreLine := canvas.NewText(
 		fmt.Sprintf("Bestwerte — Normal: %d   Randomizer: %d   Endlos: %d",
@@ -238,7 +242,8 @@ func main() {
 
 	a := app.NewWithID("com.sinan.go2048gui")
 	w := a.NewWindow("2048")
-	w.Resize(fyne.NewSize(720, 780))
+	w.Resize(fyne.NewSize(720, 820))
+	w.SetFixedSize(true)
 	w.SetContent(buildMenu(w))
 	w.ShowAndRun()
 }
