@@ -10,8 +10,8 @@ import (
 )
 
 func buildPuzzleSelect(win fyne.Window) fyne.CanvasObject {
-	title := widget.NewLabelWithStyle("Raetsel-Modus", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	hint := widget.NewLabel("Erreiche die Zielpunktzahl, bevor die Zuege ausgehen.")
+	title := widget.NewLabelWithStyle(tr("puzzle.title"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	hint := widget.NewLabel(tr("puzzle.hint"))
 	hint.Alignment = fyne.TextAlignCenter
 
 	grid := container.New(layout.NewGridLayoutWithColumns(5))
@@ -38,7 +38,7 @@ func buildPuzzleSelect(win fyne.Window) fyne.CanvasObject {
 	scroll := container.NewVScroll(grid)
 	scroll.SetMinSize(fyne.NewSize(420, 420))
 
-	backBtn := widget.NewButton("Zurueck zum Menue", func() {
+	backBtn := widget.NewButton(tr("level.back"), func() {
 		win.SetContent(buildMenu(win))
 	})
 

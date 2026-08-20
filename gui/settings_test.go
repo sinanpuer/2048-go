@@ -13,6 +13,50 @@ func TestDefaultSettingsAreSane(t *testing.T) {
 	if s.FPS != 60 {
 		t.Errorf("expected 60 FPS by default, got %d", s.FPS)
 	}
+	if s.Language != LangDE {
+		t.Errorf("expected German by default, got %s", s.Language)
+	}
+}
+
+func TestTranslationSwitchesByLanguage(t *testing.T) {
+	orig := settings.Language
+	defer func() { settings.Language = orig }()
+
+	settings.Language = LangDE
+	if got := tr("settings.save"); got != "Speichern" {
+		t.Errorf("expected German translation, got %q", got)
+	}
+
+	settings.Language = LangEN
+	if got := tr("settings.save"); got != "Save" {
+		t.Errorf("expected English translation, got %q", got)
+	}
+
+	if got := trf("menu.levels", 100); got != "Level mode (100 levels)" {
+		t.Errorf("expected formatted English translation, got %q", got)
+	}
+}
+
+func TestTranslationTablesHaveMatchingKeys(t *testing.T) {
+	for k := range i18nDE {
+		if _, ok := i18nEN[k]; !ok {
+			t.Errorf("key %q exists in German table but not English", k)
+		}
+	}
+	for k := range i18nEN {
+		if _, ok := i18nDE[k]; !ok {
+			t.Errorf("key %q exists in English table but not German", k)
+		}
+	}
+}
+
+func TestTranslationUnknownKeyFallsBackToKey(t *testing.T) {
+	orig := settings.Language
+	defer func() { settings.Language = orig }()
+	settings.Language = LangDE
+	if got := tr("does.not.exist"); got != "does.not.exist" {
+		t.Errorf("expected unknown key to fall back to itself, got %q", got)
+	}
 }
 
 func TestAmbientTickIntervalScalesWithFPS(t *testing.T) {

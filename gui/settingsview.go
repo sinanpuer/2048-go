@@ -7,9 +7,9 @@ import (
 )
 
 func buildSettings(win fyne.Window) fyne.CanvasObject {
-	title := widget.NewLabelWithStyle("Einstellungen", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	title := widget.NewLabelWithStyle(tr("settings.title"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
-	animCheck := widget.NewCheck("Dynamik (Animationen)", nil)
+	animCheck := widget.NewCheck(tr("settings.dynamik"), nil)
 	animCheck.SetChecked(settings.Animations)
 
 	selectedTheme := settings.Theme
@@ -37,34 +37,48 @@ func buildSettings(win fyne.Window) fyne.CanvasObject {
 
 	previews := container.NewGridWithColumns(3, cards[0], cards[1], cards[2])
 
-	fpsNames := []string{"30 FPS", "60 FPS", "Unbegrenzt"}
-	fpsGroup := widget.NewRadioGroup(fpsNames, nil)
+	fps30, fps60, fpsUnlim := tr("settings.fps30"), tr("settings.fps60"), tr("settings.fpsUnlim")
+	fpsGroup := widget.NewRadioGroup([]string{fps30, fps60, fpsUnlim}, nil)
 	switch settings.FPS {
 	case 30:
-		fpsGroup.Selected = "30 FPS"
+		fpsGroup.Selected = fps30
 	case 0:
-		fpsGroup.Selected = "Unbegrenzt"
+		fpsGroup.Selected = fpsUnlim
 	default:
-		fpsGroup.Selected = "60 FPS"
+		fpsGroup.Selected = fps60
 	}
 
-	saveBtn := widget.NewButton("Speichern", func() {
+	langDE, langEN := tr("settings.langDE"), tr("settings.langEN")
+	langGroup := widget.NewRadioGroup([]string{langDE, langEN}, nil)
+	if settings.Language == LangEN {
+		langGroup.Selected = langEN
+	} else {
+		langGroup.Selected = langDE
+	}
+
+	saveBtn := widget.NewButton(tr("settings.save"), func() {
 		settings.Animations = animCheck.Checked
 		settings.Theme = selectedTheme
 
 		switch fpsGroup.Selected {
-		case "30 FPS":
+		case fps30:
 			settings.FPS = 30
-		case "Unbegrenzt":
+		case fpsUnlim:
 			settings.FPS = 0
 		default:
 			settings.FPS = 60
 		}
 
+		if langGroup.Selected == langEN {
+			settings.Language = LangEN
+		} else {
+			settings.Language = LangDE
+		}
+
 		settings.save()
 		win.SetContent(buildMenu(win))
 	})
-	backBtn := widget.NewButton("Zurueck", func() {
+	backBtn := widget.NewButton(tr("settings.back"), func() {
 		win.SetContent(buildMenu(win))
 	})
 
@@ -73,11 +87,14 @@ func buildSettings(win fyne.Window) fyne.CanvasObject {
 		widget.NewSeparator(),
 		animCheck,
 		widget.NewSeparator(),
-		widget.NewLabel("Design-Thema"),
+		widget.NewLabel(tr("settings.theme")),
 		previews,
 		widget.NewSeparator(),
-		widget.NewLabel("Bildwiederholrate"),
+		widget.NewLabel(tr("settings.fps")),
 		fpsGroup,
+		widget.NewSeparator(),
+		widget.NewLabel(tr("settings.language")),
+		langGroup,
 		widget.NewSeparator(),
 		container.NewCenter(container.NewHBox(backBtn, saveBtn)),
 	)

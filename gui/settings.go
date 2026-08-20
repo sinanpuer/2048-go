@@ -12,10 +12,11 @@ type Settings struct {
 	Animations bool   `json:"animations"`
 	Theme      string `json:"theme"`
 	FPS        int    `json:"fps"` // 30, 60, or 0 = unlimited
+	Language   Lang   `json:"language"`
 }
 
 func defaultSettings() *Settings {
-	return &Settings{Animations: true, Theme: ThemeClassic, FPS: 60}
+	return &Settings{Animations: true, Theme: ThemeClassic, FPS: 60, Language: LangDE}
 }
 
 func settingsFilePath() (string, error) {
@@ -46,6 +47,9 @@ func loadSettings() *Settings {
 	}
 	if s.FPS != 30 && s.FPS != 60 && s.FPS != 0 {
 		s.FPS = 60
+	}
+	if s.Language != LangDE && s.Language != LangEN {
+		s.Language = LangDE
 	}
 	return s
 }

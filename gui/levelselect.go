@@ -10,8 +10,8 @@ import (
 )
 
 func buildLevelSelect(win fyne.Window) fyne.CanvasObject {
-	title := widget.NewLabelWithStyle("Level-Modus", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	hint := widget.NewLabel("Schliesse ein Level ab, um das naechste freizuschalten.")
+	title := widget.NewLabelWithStyle(tr("level.title"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	hint := widget.NewLabel(tr("level.hint"))
 	hint.Alignment = fyne.TextAlignCenter
 
 	grid := container.New(layout.NewGridLayoutWithColumns(5))
@@ -38,7 +38,7 @@ func buildLevelSelect(win fyne.Window) fyne.CanvasObject {
 	scroll := container.NewVScroll(grid)
 	scroll.SetMinSize(fyne.NewSize(420, 420))
 
-	backBtn := widget.NewButton("Zurueck zum Menue", func() {
+	backBtn := widget.NewButton(tr("level.back"), func() {
 		win.SetContent(buildMenu(win))
 	})
 

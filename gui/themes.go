@@ -18,11 +18,11 @@ const (
 func themeDisplayName(theme string) string {
 	switch theme {
 	case ThemeStone:
-		return "Stein (Castle)"
+		return tr("theme.stone")
 	case ThemeCandy:
-		return "Suessigkeiten"
+		return tr("theme.candy")
 	default:
-		return "Klassisch"
+		return tr("theme.classic")
 	}
 }
 
@@ -42,32 +42,32 @@ func cellFactory(theme string) func(float32) tileCell {
 var stoneMortar = color.NRGBA{R: 0x4a, G: 0x45, B: 0x3c, A: 0xff}
 
 func stoneColors(v int) (base, fg color.Color) {
-	dark := color.NRGBA{R: 0x2a, G: 0x27, B: 0x22, A: 0xff}
-	cream := color.NRGBA{R: 0xf2, G: 0xef, B: 0xe6, A: 0xff}
+	// The number stays black on every filled tile for reliable readability;
+	// only the deepest (unreachable-in-practice) tier is dark enough that
+	// black text would be unreadable, so it gets gold instead.
+	dark := color.NRGBA{R: 0x14, G: 0x12, B: 0x0f, A: 0xff}
 	gold := color.NRGBA{R: 0xd4, G: 0xaf, B: 0x37, A: 0xff}
 	switch v {
-	case 0:
-		return color.NRGBA{R: 0xb5, G: 0xb0, B: 0xa6, A: 0xff}, cream
 	case 2:
 		return color.NRGBA{R: 0xc9, G: 0xc4, B: 0xba, A: 0xff}, dark
 	case 4:
 		return color.NRGBA{R: 0xa8, G: 0xa2, B: 0x97, A: 0xff}, dark
 	case 8:
-		return color.NRGBA{R: 0x91, G: 0x87, B: 0x78, A: 0xff}, cream
+		return color.NRGBA{R: 0x91, G: 0x87, B: 0x78, A: 0xff}, dark
 	case 16:
-		return color.NRGBA{R: 0x7c, G: 0x6a, B: 0x58, A: 0xff}, cream
+		return color.NRGBA{R: 0x8a, G: 0x78, B: 0x64, A: 0xff}, dark
 	case 32:
-		return color.NRGBA{R: 0x6b, G: 0x54, B: 0x3c, A: 0xff}, cream
+		return color.NRGBA{R: 0x7d, G: 0x64, B: 0x4a, A: 0xff}, dark
 	case 64:
-		return color.NRGBA{R: 0x5c, G: 0x44, B: 0x2e, A: 0xff}, cream
+		return color.NRGBA{R: 0x84, G: 0x66, B: 0x48, A: 0xff}, dark
 	case 128:
-		return color.NRGBA{R: 0x6a, G: 0x6f, B: 0x76, A: 0xff}, cream
+		return color.NRGBA{R: 0x7a, G: 0x80, B: 0x88, A: 0xff}, dark
 	case 256:
-		return color.NRGBA{R: 0x54, G: 0x5b, B: 0x63, A: 0xff}, cream
+		return color.NRGBA{R: 0x92, G: 0x9a, B: 0xa4, A: 0xff}, dark
 	case 512:
-		return color.NRGBA{R: 0x8a, G: 0x93, B: 0x9c, A: 0xff}, dark
+		return color.NRGBA{R: 0xa8, G: 0xb0, B: 0xba, A: 0xff}, dark
 	case 1024:
-		return color.NRGBA{R: 0xb0, G: 0x8d, B: 0x3f, A: 0xff}, cream
+		return color.NRGBA{R: 0xc9, G: 0xa6, B: 0x52, A: 0xff}, dark
 	case 2048:
 		return gold, dark
 	default:
@@ -136,17 +136,25 @@ func brickObjs(bricks []*canvas.Rectangle) []fyne.CanvasObject {
 func (c *stoneCell) object() fyne.CanvasObject { return c.root }
 
 func (c *stoneCell) setValue(v int) {
+	if v == 0 {
+		// Leave empty slots as bare mortar so filled brick tiles stand out
+		// clearly against them.
+		for _, b := range c.bricks {
+			b.FillColor = color.Transparent
+			b.Refresh()
+		}
+		c.text.Text = ""
+		c.text.Refresh()
+		return
+	}
+
 	base, fg := stoneColors(v)
 	baseN := toNRGBA(base)
 	for _, b := range c.bricks {
 		b.FillColor = baseN
 		b.Refresh()
 	}
-	if v == 0 {
-		c.text.Text = ""
-	} else {
-		c.text.Text = fmt.Sprintf("%d", v)
-	}
+	c.text.Text = fmt.Sprintf("%d", v)
 	c.text.Color = fg
 	c.text.Refresh()
 }
@@ -156,33 +164,35 @@ func (c *stoneCell) flashPulse() { c.flash.trigger() }
 // ---------- candy: lollipop-swirl tile ----------
 
 func candyColors(v int) (base, fg color.Color) {
-	dark := color.NRGBA{R: 0x3e, G: 0x27, B: 0x23, A: 0xff}
-	white := color.White
+	// The number stays black on every filled tile for reliable readability;
+	// only the deepest (unreachable-in-practice) tier is dark enough that
+	// black text would be unreadable, so it gets gold instead.
+	dark := color.NRGBA{R: 0x1a, G: 0x14, B: 0x12, A: 0xff}
 	switch v {
 	case 0:
-		return color.NRGBA{R: 0xf3, G: 0xe0, B: 0xea, A: 0xff}, white
+		return color.NRGBA{R: 0xf3, G: 0xe0, B: 0xea, A: 0xff}, dark
 	case 2:
 		return color.NRGBA{R: 0xff, G: 0xd1, B: 0xdc, A: 0xff}, dark
 	case 4:
 		return color.NRGBA{R: 0xe0, G: 0xb0, B: 0xff, A: 0xff}, dark
 	case 8:
-		return color.NRGBA{R: 0xff, G: 0x9e, B: 0xcf, A: 0xff}, white
+		return color.NRGBA{R: 0xff, G: 0x9e, B: 0xcf, A: 0xff}, dark
 	case 16:
-		return color.NRGBA{R: 0xff, G: 0xb3, B: 0x47, A: 0xff}, white
+		return color.NRGBA{R: 0xff, G: 0xb3, B: 0x47, A: 0xff}, dark
 	case 32:
 		return color.NRGBA{R: 0xff, G: 0xf2, B: 0x75, A: 0xff}, dark
 	case 64:
 		return color.NRGBA{R: 0xb5, G: 0xe6, B: 0x55, A: 0xff}, dark
 	case 128:
-		return color.NRGBA{R: 0x7e, G: 0xc8, B: 0xe3, A: 0xff}, white
+		return color.NRGBA{R: 0x7e, G: 0xc8, B: 0xe3, A: 0xff}, dark
 	case 256:
-		return color.NRGBA{R: 0xa6, G: 0x85, B: 0xe2, A: 0xff}, white
+		return color.NRGBA{R: 0xa6, G: 0x85, B: 0xe2, A: 0xff}, dark
 	case 512:
-		return color.NRGBA{R: 0xff, G: 0x6f, B: 0x91, A: 0xff}, white
+		return color.NRGBA{R: 0xff, G: 0x6f, B: 0x91, A: 0xff}, dark
 	case 1024:
 		return color.NRGBA{R: 0xff, G: 0xd7, B: 0x00, A: 0xff}, dark
 	case 2048:
-		return color.NRGBA{R: 0xff, G: 0x3e, B: 0xa5, A: 0xff}, white
+		return color.NRGBA{R: 0xff, G: 0x3e, B: 0xa5, A: 0xff}, dark
 	default:
 		return dark, color.NRGBA{R: 0xff, G: 0xd7, B: 0x00, A: 0xff}
 	}
@@ -212,8 +222,8 @@ func newCandyCell(cellPx float32) tileCell {
 	}
 
 	base := mkCircle(0)
-	ringOuter := mkCircle(d * 0.08)
-	ringCenter := mkCircle(d * 0.22)
+	ringOuter := mkCircle(d * 0.05)
+	ringCenter := mkCircle(d * 0.13)
 	rings := []*canvas.Circle{ringOuter, ringCenter}
 
 	text := canvas.NewText("", color.White)

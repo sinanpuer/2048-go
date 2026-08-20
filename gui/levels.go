@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"math"
 	"os"
 	"path/filepath"
@@ -30,13 +29,13 @@ type LevelDef struct {
 func (l LevelDef) Title() string {
 	switch l.Kind {
 	case KindScore:
-		return fmt.Sprintf("Erreiche %d Punkte", l.ScoreGoal)
+		return trf("level.goalScore", l.ScoreGoal)
 	case KindTile:
-		return fmt.Sprintf("Erreiche die Kachel %d", l.TileGoal)
+		return trf("level.goalTile", l.TileGoal)
 	case KindTimedScore:
-		return fmt.Sprintf("%d Punkte in %ds", l.ScoreGoal, l.TimeLimit)
+		return trf("level.goalTimedScore", l.ScoreGoal, l.TimeLimit)
 	case KindTimedTile:
-		return fmt.Sprintf("Kachel %d in %ds", l.TileGoal, l.TimeLimit)
+		return trf("level.goalTimedTile", l.TileGoal, l.TimeLimit)
 	}
 	return ""
 }

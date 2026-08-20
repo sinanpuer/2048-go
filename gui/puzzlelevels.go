@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 )
 
@@ -17,7 +16,7 @@ type PuzzleLevelDef struct {
 }
 
 func (p PuzzleLevelDef) Title() string {
-	return fmt.Sprintf("Erreiche %d Punkte in %d Zuegen", p.ScoreGoal, p.MoveLimit)
+	return trf("puzzle.goal", p.ScoreGoal, p.MoveLimit)
 }
 
 // generatePuzzleLevels builds n puzzles with a linearly increasing

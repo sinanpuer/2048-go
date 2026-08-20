@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 
 	"fyne.io/fyne/v2"
@@ -41,13 +40,13 @@ func startPuzzle(win fyne.Window, levelNumber int) {
 	pu.comboL = widget.NewLabel("")
 	goalL := widget.NewLabelWithStyle(def.Title(), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
-	backBtn := widget.NewButton("Zurueck zur Raetselauswahl", func() {
+	backBtn := widget.NewButton(tr("puzzle.backSelect"), func() {
 		win.Canvas().SetOnTypedKey(nil)
 		win.SetContent(buildPuzzleSelect(win))
 	})
 
 	header := container.NewVBox(
-		widget.NewLabelWithStyle(fmt.Sprintf("Raetsel %d", def.Number), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(trf("puzzle.number", def.Number), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		goalL,
 		container.NewHBox(pu.scoreL, layout.NewSpacer(), pu.movesL, layout.NewSpacer(), backBtn),
 		container.NewHBox(pu.comboL),
@@ -79,10 +78,10 @@ func startPuzzle(win fyne.Window, levelNumber int) {
 
 func (pu *puzzleUI) render() {
 	pu.bw.render(pu.board)
-	pu.scoreL.SetText(fmt.Sprintf("Punkte: %d / %d", pu.score, pu.def.ScoreGoal))
-	pu.movesL.SetText(fmt.Sprintf("Zuege: %d / %d", pu.movesUsed, pu.def.MoveLimit))
+	pu.scoreL.SetText(trf("puzzle.score", pu.score, pu.def.ScoreGoal))
+	pu.movesL.SetText(trf("puzzle.moves", pu.movesUsed, pu.def.MoveLimit))
 	if pu.combo > 0 {
-		pu.comboL.SetText(fmt.Sprintf("Combo x%d (%.1fx)", pu.combo, comboMultiplier(pu.combo)))
+		pu.comboL.SetText(trf("game.combo", pu.combo, comboMultiplier(pu.combo)))
 	} else {
 		pu.comboL.SetText("")
 	}
@@ -108,11 +107,11 @@ func (pu *puzzleUI) applyMove(fn func(Board) (Board, bool, int)) {
 		return
 	}
 	if pu.movesUsed >= pu.def.MoveLimit {
-		pu.finishLose("Zuglimit erreicht!")
+		pu.finishLose(tr("puzzle.moveLimit"))
 		return
 	}
 	if !hasMoves(pu.board) {
-		pu.finishLose("Game Over! Kein Zug mehr moeglich.")
+		pu.finishLose(tr("game.gameoverMsg"))
 	}
 }
 
@@ -120,7 +119,7 @@ func (pu *puzzleUI) finishWin() {
 	pu.finished = true
 	progress.markPuzzleCompleted(pu.def.Number)
 	progress.save()
-	pu.showResult(true, "Raetsel geloest!")
+	pu.showResult(true, tr("puzzle.win"))
 }
 
 func (pu *puzzleUI) finishLose(reason string) {
@@ -133,18 +132,18 @@ func (pu *puzzleUI) showResult(won bool, message string) {
 	win.Canvas().SetOnTypedKey(nil)
 
 	resultLabel := widget.NewLabelWithStyle(message, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	scoreLine := widget.NewLabel(fmt.Sprintf("Punkte: %d / %d", pu.score, pu.def.ScoreGoal))
+	scoreLine := widget.NewLabel(trf("puzzle.score", pu.score, pu.def.ScoreGoal))
 	scoreLine.Alignment = fyne.TextAlignCenter
 
-	retryLabel := "Nochmal versuchen"
+	retryLabel := tr("level.retry")
 	if won {
-		retryLabel = "Nochmal spielen"
+		retryLabel = tr("level.retryWin")
 	}
 	retryBtn := widget.NewButton(retryLabel, func() {
 		win.Canvas().SetOnTypedKey(nil)
 		startPuzzle(win, pu.def.Number)
 	})
-	backBtn := widget.NewButton("Zurueck zur Raetselauswahl", func() {
+	backBtn := widget.NewButton(tr("puzzle.backSelect"), func() {
 		win.Canvas().SetOnTypedKey(nil)
 		win.SetContent(buildPuzzleSelect(win))
 	})
@@ -152,7 +151,7 @@ func (pu *puzzleUI) showResult(won bool, message string) {
 	buttonRow := []fyne.CanvasObject{retryBtn}
 	nextNum := pu.def.Number + 1
 	if won && nextNum <= totalPuzzleLevels && progress.isPuzzleUnlocked(nextNum) {
-		nextBtn := widget.NewButton("Naechstes Raetsel", func() {
+		nextBtn := widget.NewButton(tr("puzzle.next"), func() {
 			win.Canvas().SetOnTypedKey(nil)
 			startPuzzle(win, nextNum)
 		})
@@ -160,7 +159,7 @@ func (pu *puzzleUI) showResult(won bool, message string) {
 	}
 	buttonRow = append(buttonRow, backBtn)
 
-	header := widget.NewLabelWithStyle(fmt.Sprintf("Raetsel %d", pu.def.Number), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	header := widget.NewLabelWithStyle(trf("puzzle.number", pu.def.Number), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
 	boardBG := canvas.NewRectangle(color.NRGBA{R: 0xbb, G: 0xad, B: 0xa0, A: 0xff})
 	boardArea := container.NewStack(boardBG, container.NewPadded(pu.bw.container))

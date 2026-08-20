@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 	"sync"
 	"time"
@@ -46,14 +45,14 @@ func startLevel(win fyne.Window, levelNumber int) {
 	lu.comboL = widget.NewLabel("")
 	goalL := widget.NewLabelWithStyle(def.Title(), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
-	backBtn := widget.NewButton("Zurueck zur Levelauswahl", func() {
+	backBtn := widget.NewButton(tr("level.backSelect"), func() {
 		lu.stop()
 		win.Canvas().SetOnTypedKey(nil)
 		win.SetContent(buildLevelSelect(win))
 	})
 
 	header := container.NewVBox(
-		widget.NewLabelWithStyle(fmt.Sprintf("Level %d", def.Number), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(trf("level.number", def.Number), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		goalL,
 		container.NewHBox(lu.scoreL, layout.NewSpacer(), lu.timeL, layout.NewSpacer(), backBtn),
 		container.NewHBox(lu.comboL),
@@ -85,16 +84,16 @@ func startLevel(win fyne.Window, levelNumber int) {
 	})
 
 	if def.TimeLimit > 0 {
-		lu.timeL.SetText(fmt.Sprintf("Zeit: %ds", def.TimeLimit))
+		lu.timeL.SetText(trf("level.time", def.TimeLimit))
 		lu.startTimer()
 	}
 }
 
 func (lu *levelUI) render() {
 	lu.bw.render(lu.board)
-	lu.scoreL.SetText(fmt.Sprintf("Punkte: %d", lu.score))
+	lu.scoreL.SetText(trf("game.score", lu.score))
 	if lu.combo > 0 {
-		lu.comboL.SetText(fmt.Sprintf("Combo x%d (%.1fx)", lu.combo, comboMultiplier(lu.combo)))
+		lu.comboL.SetText(trf("game.combo", lu.combo, comboMultiplier(lu.combo)))
 	} else {
 		lu.comboL.SetText("")
 	}
@@ -119,7 +118,7 @@ func (lu *levelUI) applyMove(fn func(Board) (Board, bool, int)) {
 		return
 	}
 	if !hasMoves(lu.board) {
-		lu.finishLose("Game Over! Kein Zug mehr moeglich.")
+		lu.finishLose(tr("game.gameoverMsg"))
 	}
 }
 
@@ -153,9 +152,9 @@ func (lu *levelUI) startTimer() {
 					if lu.finished {
 						return
 					}
-					lu.timeL.SetText(fmt.Sprintf("Zeit: %ds", remaining))
+					lu.timeL.SetText(trf("level.time", remaining))
 					if remaining <= 0 {
-						lu.finishLose("Zeit abgelaufen!")
+						lu.finishLose(tr("level.timeUp"))
 					}
 				})
 				if remaining <= 0 {
@@ -178,7 +177,7 @@ func (lu *levelUI) finishWin() {
 	lu.stop()
 	progress.markCompleted(lu.def.Number)
 	progress.save()
-	lu.showResult(true, "Level geschafft!")
+	lu.showResult(true, tr("level.win"))
 }
 
 func (lu *levelUI) finishLose(reason string) {
@@ -190,18 +189,18 @@ func (lu *levelUI) finishLose(reason string) {
 func (lu *levelUI) showResult(won bool, message string) {
 	win := lu.win
 	resultLabel := widget.NewLabelWithStyle(message, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	scoreLine := widget.NewLabel(fmt.Sprintf("Punkte: %d", lu.score))
+	scoreLine := widget.NewLabel(trf("game.score", lu.score))
 	scoreLine.Alignment = fyne.TextAlignCenter
 
-	retryLabel := "Nochmal versuchen"
+	retryLabel := tr("level.retry")
 	if won {
-		retryLabel = "Nochmal spielen"
+		retryLabel = tr("level.retryWin")
 	}
 	retryBtn := widget.NewButton(retryLabel, func() {
 		win.Canvas().SetOnTypedKey(nil)
 		startLevel(win, lu.def.Number)
 	})
-	backBtn := widget.NewButton("Zurueck zur Levelauswahl", func() {
+	backBtn := widget.NewButton(tr("level.backSelect"), func() {
 		win.Canvas().SetOnTypedKey(nil)
 		win.SetContent(buildLevelSelect(win))
 	})
@@ -209,7 +208,7 @@ func (lu *levelUI) showResult(won bool, message string) {
 	buttonRow := []fyne.CanvasObject{retryBtn}
 	nextNum := lu.def.Number + 1
 	if won && nextNum <= totalLevels && progress.isUnlocked(nextNum) {
-		nextBtn := widget.NewButton("Naechstes Level", func() {
+		nextBtn := widget.NewButton(tr("level.next"), func() {
 			win.Canvas().SetOnTypedKey(nil)
 			startLevel(win, nextNum)
 		})
@@ -217,7 +216,7 @@ func (lu *levelUI) showResult(won bool, message string) {
 	}
 	buttonRow = append(buttonRow, backBtn)
 
-	header := widget.NewLabelWithStyle(fmt.Sprintf("Level %d", lu.def.Number), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	header := widget.NewLabelWithStyle(trf("level.number", lu.def.Number), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
 	boardBG := canvas.NewRectangle(color.NRGBA{R: 0xbb, G: 0xad, B: 0xa0, A: 0xff})
 	boardArea := container.NewStack(boardBG, container.NewPadded(lu.bw.container))

@@ -21,11 +21,11 @@ const (
 func modeName(m Mode) string {
 	switch m {
 	case ModeNormal:
-		return "Normal"
+		return tr("mode.normal")
 	case ModeRandomizer:
-		return "Randomizer"
+		return tr("mode.randomizer")
 	default:
-		return "Endlos"
+		return tr("mode.endless")
 	}
 }
 

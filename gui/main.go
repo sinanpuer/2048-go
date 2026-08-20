@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 	"math/rand"
 	"time"
@@ -41,20 +40,20 @@ type gameUI struct {
 
 func (g *gameUI) refresh() {
 	g.bw.render(g.board)
-	g.scoreL.SetText(fmt.Sprintf("Punkte: %d", g.score))
-	g.modeL.SetText(fmt.Sprintf("Modus: %s", modeName(g.mode)))
-	g.highL.SetText(fmt.Sprintf("Highscore: %d", highscores.get(g.mode)))
+	g.scoreL.SetText(trf("game.score", g.score))
+	g.modeL.SetText(trf("game.mode", modeName(g.mode)))
+	g.highL.SetText(trf("game.highscore", highscores.get(g.mode)))
 	if g.combo > 0 {
-		g.comboL.SetText(fmt.Sprintf("Combo x%d (%.1fx)", g.combo, comboMultiplier(g.combo)))
+		g.comboL.SetText(trf("game.combo", g.combo, comboMultiplier(g.combo)))
 	} else {
 		g.comboL.SetText("")
 	}
 
 	switch {
 	case g.newHigh:
-		g.msgL.SetText("Neuer Highscore!")
+		g.msgL.SetText(tr("game.newHigh"))
 	case g.won && g.mode != ModeEndless:
-		g.msgL.SetText("2048 erreicht! Spiel weiter fuer mehr Punkte.")
+		g.msgL.SetText(tr("game.won2048"))
 	default:
 		g.msgL.SetText("")
 	}
@@ -90,15 +89,15 @@ func (g *gameUI) showGameOver() {
 	win := g.win
 	win.Canvas().SetOnTypedKey(nil)
 
-	title := widget.NewLabelWithStyle("Game Over!", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	scoreLine := widget.NewLabel(fmt.Sprintf("Punkte: %d", g.score))
+	title := widget.NewLabelWithStyle(tr("game.gameover"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	scoreLine := widget.NewLabel(trf("game.score", g.score))
 	scoreLine.Alignment = fyne.TextAlignCenter
 
-	restartBtn := widget.NewButton("Neustart", func() {
+	restartBtn := widget.NewButton(tr("game.restart"), func() {
 		win.Canvas().SetOnTypedKey(nil)
 		startGame(win, g.mode)
 	})
-	menuBtn := widget.NewButton("Hauptmenue", func() {
+	menuBtn := widget.NewButton(tr("game.mainmenu"), func() {
 		win.Canvas().SetOnTypedKey(nil)
 		win.SetContent(buildMenu(win))
 	})
@@ -131,7 +130,7 @@ func startGame(win fyne.Window, mode Mode) {
 	g.msgL = widget.NewLabel("")
 	g.msgL.Alignment = fyne.TextAlignCenter
 
-	backBtn := widget.NewButton("Zurueck zum Menue", func() {
+	backBtn := widget.NewButton(tr("game.back"), func() {
 		win.Canvas().SetOnTypedKey(nil)
 		win.SetContent(buildMenu(win))
 	})
@@ -183,7 +182,7 @@ func buildMenu(win fyne.Window) fyne.CanvasObject {
 	title.TextStyle = fyne.TextStyle{Bold: true}
 	title.Alignment = fyne.TextAlignCenter
 
-	subtitle := canvas.NewText("Waehle einen Spielmodus", color.NRGBA{R: 0xee, G: 0xee, B: 0xee, A: 0xff})
+	subtitle := canvas.NewText(tr("menu.subtitle"), color.NRGBA{R: 0xee, G: 0xee, B: 0xee, A: 0xff})
 	subtitle.Alignment = fyne.TextAlignCenter
 	subtitle.TextSize = 14
 
@@ -194,27 +193,26 @@ func buildMenu(win fyne.Window) fyne.CanvasObject {
 		}
 	}
 
-	btnNormal := widget.NewButton("Normales Spiel", goTo(func() { startGame(win, ModeNormal) }))
-	btnRandom := widget.NewButton("Randomizer-Modus (2, 4, 8)", goTo(func() { startGame(win, ModeRandomizer) }))
-	btnEndless := widget.NewButton("Endlos-Modus (ueber 2048 hinaus)", goTo(func() { startGame(win, ModeEndless) }))
-	btnLevels := widget.NewButton(fmt.Sprintf("Level-Modus (%d Level)", totalLevels), goTo(func() {
+	btnNormal := widget.NewButton(tr("menu.normal"), goTo(func() { startGame(win, ModeNormal) }))
+	btnRandom := widget.NewButton(tr("menu.randomizer"), goTo(func() { startGame(win, ModeRandomizer) }))
+	btnEndless := widget.NewButton(tr("menu.endless"), goTo(func() { startGame(win, ModeEndless) }))
+	btnLevels := widget.NewButton(trf("menu.levels", totalLevels), goTo(func() {
 		win.SetContent(buildLevelSelect(win))
 	}))
-	btnDuel := widget.NewButton("KI-Duell (gegen Bot)", goTo(func() {
+	btnDuel := widget.NewButton(tr("menu.duel"), goTo(func() {
 		win.SetContent(buildBotSetup(win))
 	}))
-	btnPuzzle := widget.NewButton(fmt.Sprintf("Raetsel-Modus (%d Raetsel)", totalPuzzleLevels), goTo(func() {
+	btnPuzzle := widget.NewButton(trf("menu.puzzle", totalPuzzleLevels), goTo(func() {
 		win.SetContent(buildPuzzleSelect(win))
 	}))
-	btnSettings := widget.NewButton("Einstellungen", goTo(func() {
+	btnSettings := widget.NewButton(tr("menu.settings"), goTo(func() {
 		win.SetContent(buildSettings(win))
 	}))
 
 	buttons := container.NewVBox(btnNormal, btnRandom, btnEndless, btnLevels, btnPuzzle, btnDuel, btnSettings)
 
 	highscoreLine := canvas.NewText(
-		fmt.Sprintf("Bestwerte — Normal: %d   Randomizer: %d   Endlos: %d",
-			highscores.get(ModeNormal), highscores.get(ModeRandomizer), highscores.get(ModeEndless)),
+		trf("menu.highscores", highscores.get(ModeNormal), highscores.get(ModeRandomizer), highscores.get(ModeEndless)),
 		color.NRGBA{R: 0xee, G: 0xee, B: 0xee, A: 0xff},
 	)
 	highscoreLine.Alignment = fyne.TextAlignCenter

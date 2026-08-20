@@ -15,9 +15,9 @@ const (
 
 func botDifficultyName(d BotDifficulty) string {
 	if d == BotExpert {
-		return "Experte"
+		return tr("bot.expert")
 	}
-	return "Normal"
+	return tr("bot.normal")
 }
 
 func botMoveInterval(d BotDifficulty) time.Duration {

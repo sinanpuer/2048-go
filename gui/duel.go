@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -13,43 +12,45 @@ import (
 )
 
 func buildBotSetup(win fyne.Window) fyne.CanvasObject {
-	title := widget.NewLabelWithStyle("KI-Duell", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	desc := widget.NewLabel("Du spielst live gegen einen Bot auf einem eigenen Brett. Wer am Ende mehr Punkte hat, gewinnt.")
+	title := widget.NewLabelWithStyle(tr("duel.title"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	desc := widget.NewLabel(tr("duel.desc"))
 	desc.Alignment = fyne.TextAlignCenter
 	desc.Wrapping = fyne.TextWrapWord
 
 	duration := 60
 	difficulty := BotNormal
 
-	durationRadio := widget.NewRadioGroup([]string{"Bullet (1 Minute)", "Normal (5 Minuten)"}, func(s string) {
-		if strings.HasPrefix(s, "Normal") {
+	bulletLabel, normalLengthLabel := tr("duel.bullet"), tr("duel.normalLength")
+	durationRadio := widget.NewRadioGroup([]string{bulletLabel, normalLengthLabel}, func(s string) {
+		if s == normalLengthLabel {
 			duration = 300
 		} else {
 			duration = 60
 		}
 	})
-	durationRadio.SetSelected("Bullet (1 Minute)")
+	durationRadio.SetSelected(bulletLabel)
 
-	difficultyRadio := widget.NewRadioGroup([]string{"Normal", "Experte"}, func(s string) {
-		if s == "Experte" {
+	botNormalLabel, botExpertLabel := tr("bot.normal"), tr("bot.expert")
+	difficultyRadio := widget.NewRadioGroup([]string{botNormalLabel, botExpertLabel}, func(s string) {
+		if s == botExpertLabel {
 			difficulty = BotExpert
 		} else {
 			difficulty = BotNormal
 		}
 	})
-	difficultyRadio.SetSelected("Normal")
+	difficultyRadio.SetSelected(botNormalLabel)
 
-	startBtn := widget.NewButton("Duell starten", func() {
+	startBtn := widget.NewButton(tr("duel.start"), func() {
 		startDuel(win, duration, difficulty)
 	})
-	backBtn := widget.NewButton("Zurueck zum Menue", func() {
+	backBtn := widget.NewButton(tr("duel.back"), func() {
 		win.SetContent(buildMenu(win))
 	})
 
 	content := container.NewVBox(
 		title, desc, widget.NewSeparator(),
-		widget.NewLabel("Rennlaenge:"), durationRadio,
-		widget.NewLabel("KI-Schwierigkeit:"), difficultyRadio,
+		widget.NewLabel(tr("duel.duration")), durationRadio,
+		widget.NewLabel(tr("duel.difficulty")), difficultyRadio,
 		widget.NewSeparator(),
 		startBtn, backBtn,
 	)
@@ -103,21 +104,21 @@ func startDuel(win fyne.Window, duration int, difficulty BotDifficulty) {
 	d.botStatusL = widget.NewLabel("")
 	d.timeL = widget.NewLabelWithStyle(fmt.Sprintf("%ds", duration), fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
-	backBtn := widget.NewButton("Abbrechen", func() {
+	backBtn := widget.NewButton(tr("duel.cancel"), func() {
 		d.stop()
 		win.Canvas().SetOnTypedKey(nil)
 		win.SetContent(buildBotSetup(win))
 	})
 
 	playerPanel := container.NewVBox(
-		widget.NewLabelWithStyle("Du", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(tr("duel.you"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		d.playerScoreL,
 		d.playerComboL,
 		d.playerStatusL,
 		container.NewPadded(d.playerBW.container),
 	)
 	botPanel := container.NewVBox(
-		widget.NewLabelWithStyle(fmt.Sprintf("Bot (%s)", botDifficultyName(difficulty)), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(trf("duel.bot", botDifficultyName(difficulty)), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		d.botScoreL,
 		d.botComboL,
 		d.botStatusL,
@@ -127,7 +128,7 @@ func startDuel(win fyne.Window, duration int, difficulty BotDifficulty) {
 	boards := container.NewGridWithColumns(2, playerPanel, botPanel)
 
 	header := container.NewVBox(
-		widget.NewLabelWithStyle("KI-Duell", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(tr("duel.title"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		container.NewHBox(layout.NewSpacer(), d.timeL, layout.NewSpacer()),
 		container.NewCenter(backBtn),
 		widget.NewSeparator(),
@@ -163,27 +164,27 @@ func startDuel(win fyne.Window, duration int, difficulty BotDifficulty) {
 func (d *duelUI) render() {
 	d.playerBW.render(d.playerBoard)
 	d.botBW.render(d.botBoard)
-	d.playerScoreL.SetText(fmt.Sprintf("Punkte: %d", d.playerScore))
-	d.botScoreL.SetText(fmt.Sprintf("Punkte: %d", d.botScore))
+	d.playerScoreL.SetText(trf("game.score", d.playerScore))
+	d.botScoreL.SetText(trf("game.score", d.botScore))
 
 	if d.playerCombo > 0 {
-		d.playerComboL.SetText(fmt.Sprintf("Combo x%d (%.1fx)", d.playerCombo, comboMultiplier(d.playerCombo)))
+		d.playerComboL.SetText(trf("game.combo", d.playerCombo, comboMultiplier(d.playerCombo)))
 	} else {
 		d.playerComboL.SetText("")
 	}
 	if d.botCombo > 0 {
-		d.botComboL.SetText(fmt.Sprintf("Combo x%d (%.1fx)", d.botCombo, comboMultiplier(d.botCombo)))
+		d.botComboL.SetText(trf("game.combo", d.botCombo, comboMultiplier(d.botCombo)))
 	} else {
 		d.botComboL.SetText("")
 	}
 
 	if d.playerStuck {
-		d.playerStatusL.SetText("Game Over — kein Zug mehr!")
+		d.playerStatusL.SetText(tr("duel.gameOverStuck"))
 	} else {
 		d.playerStatusL.SetText("")
 	}
 	if d.botStuck {
-		d.botStatusL.SetText("Game Over — kein Zug mehr!")
+		d.botStatusL.SetText(tr("duel.gameOverStuck"))
 	} else {
 		d.botStatusL.SetText("")
 	}
@@ -302,38 +303,38 @@ func (d *duelUI) finish() {
 	var result string
 	switch {
 	case d.playerScore > d.botScore:
-		result = "Du gewinnst!"
+		result = tr("duel.youWin")
 	case d.playerScore < d.botScore:
-		result = "Der Bot gewinnt."
+		result = tr("duel.botWins")
 	default:
-		result = "Unentschieden!"
+		result = tr("duel.draw")
 	}
 
 	win := d.win
 	resultLabel := widget.NewLabelWithStyle(result, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-	scoreLine := widget.NewLabel(fmt.Sprintf("Du: %d   Bot: %d", d.playerScore, d.botScore))
+	scoreLine := widget.NewLabel(trf("duel.scoreLine", d.playerScore, d.botScore))
 	scoreLine.Alignment = fyne.TextAlignCenter
 
-	retryBtn := widget.NewButton("Nochmal", func() {
+	retryBtn := widget.NewButton(tr("duel.retry"), func() {
 		win.Canvas().SetOnTypedKey(nil)
 		startDuel(win, d.duration, d.difficulty)
 	})
-	backBtn := widget.NewButton("Zurueck zum Menue", func() {
+	backBtn := widget.NewButton(tr("duel.back"), func() {
 		win.Canvas().SetOnTypedKey(nil)
 		win.SetContent(buildMenu(win))
 	})
 
 	header := container.NewVBox(
-		widget.NewLabelWithStyle("KI-Duell beendet", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(tr("duel.finished"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		resultLabel, scoreLine, widget.NewSeparator(),
 	)
 
 	playerPanel := container.NewVBox(
-		widget.NewLabelWithStyle("Du", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(tr("duel.you"), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		container.NewPadded(d.playerBW.container),
 	)
 	botPanel := container.NewVBox(
-		widget.NewLabelWithStyle(fmt.Sprintf("Bot (%s)", botDifficultyName(d.difficulty)), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
+		widget.NewLabelWithStyle(trf("duel.bot", botDifficultyName(d.difficulty)), fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
 		container.NewPadded(d.botBW.container),
 	)
 	boards := container.NewGridWithColumns(2, playerPanel, botPanel)
