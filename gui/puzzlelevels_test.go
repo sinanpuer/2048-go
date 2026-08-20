@@ -12,7 +12,7 @@ func TestGeneratePuzzleLevelsCount(t *testing.T) {
 func TestPuzzleLevelsAreDeterministic(t *testing.T) {
 	a := generatePuzzleLevel(37, 100)
 	b := generatePuzzleLevel(37, 100)
-	if a.StartBoard != b.StartBoard {
+	if !boardsEqual(a.StartBoard, b.StartBoard) {
 		t.Fatalf("expected replaying level 37 to give the same starting board, got %+v vs %+v", a.StartBoard, b.StartBoard)
 	}
 	if a.MoveLimit != b.MoveLimit || a.ScoreGoal != b.ScoreGoal {

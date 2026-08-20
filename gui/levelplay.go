@@ -38,7 +38,7 @@ func startLevel(win fyne.Window, levelNumber int) {
 	}
 
 	lu := &levelUI{win: win, def: def, board: newBoard(ModeRandomizer), startedAt: time.Now()}
-	lu.bw = newBoardWidget(cellSize)
+	lu.bw = newBoardWidget(cellSize, size)
 
 	lu.scoreL = widget.NewLabel("")
 	lu.timeL = widget.NewLabel("")

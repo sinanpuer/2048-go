@@ -12,6 +12,18 @@ func buildSettings(win fyne.Window) fyne.CanvasObject {
 	animCheck := widget.NewCheck(tr("settings.dynamik"), nil)
 	animCheck.SetChecked(settings.Animations)
 
+	size4, size5, size6 := "4x4", "5x5", "6x6"
+	boardSizeGroup := widget.NewRadioGroup([]string{size4, size5, size6}, nil)
+	switch settings.BoardSize {
+	case 5:
+		boardSizeGroup.Selected = size5
+	case 6:
+		boardSizeGroup.Selected = size6
+	default:
+		boardSizeGroup.Selected = size4
+	}
+	boardSizeGroup.Horizontal = true
+
 	selectedTheme := settings.Theme
 	themes := []string{ThemeClassic, ThemeStone, ThemeCandy}
 	cards := make([]*themeCard, len(themes))
@@ -60,6 +72,15 @@ func buildSettings(win fyne.Window) fyne.CanvasObject {
 		settings.Animations = animCheck.Checked
 		settings.Theme = selectedTheme
 
+		switch boardSizeGroup.Selected {
+		case size5:
+			settings.BoardSize = 5
+		case size6:
+			settings.BoardSize = 6
+		default:
+			settings.BoardSize = 4
+		}
+
 		switch fpsGroup.Selected {
 		case fps30:
 			settings.FPS = 30
@@ -86,6 +107,9 @@ func buildSettings(win fyne.Window) fyne.CanvasObject {
 		title,
 		widget.NewSeparator(),
 		animCheck,
+		widget.NewSeparator(),
+		widget.NewLabel(tr("settings.boardsize")),
+		boardSizeGroup,
 		widget.NewSeparator(),
 		widget.NewLabel(tr("settings.theme")),
 		previews,

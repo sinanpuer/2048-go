@@ -93,21 +93,25 @@ func (c *flatCell) flashPulse() { c.flash.trigger() }
 
 // ---------- shared board grid ----------
 
-// boardWidget renders a 4x4 grid of themed tiles and can be reused by the
+// boardWidget renders an n x n grid of themed tiles and can be reused by the
 // interactive game screens and the decorative ambient background alike.
-// The theme is fixed at construction time from the current settings.
+// The theme is fixed at construction time from the current settings. Every
+// mode except free play always constructs this with n == size (4); free
+// play passes the player's chosen board size instead.
 type boardWidget struct {
-	cells     [size][size]tileCell
+	cells     [][]tileCell
 	last      Board
 	container fyne.CanvasObject
 }
 
-func newBoardWidget(cellPx float32) *boardWidget {
-	bw := &boardWidget{}
+func newBoardWidget(cellPx float32, n int) *boardWidget {
+	bw := &boardWidget{last: newEmptyBoard(n)}
 	factory := cellFactory(settings.Theme)
-	grid := container.New(layout.NewGridLayoutWithColumns(size))
-	for r := 0; r < size; r++ {
-		for c := 0; c < size; c++ {
+	grid := container.New(layout.NewGridLayoutWithColumns(n))
+	bw.cells = make([][]tileCell, n)
+	for r := 0; r < n; r++ {
+		bw.cells[r] = make([]tileCell, n)
+		for c := 0; c < n; c++ {
 			cell := factory(cellPx)
 			bw.cells[r][c] = cell
 			grid.Add(cell.object())
@@ -121,8 +125,8 @@ func newBoardWidget(cellPx float32) *boardWidget {
 // whose value just became a new nonzero value (a spawn or a merge) gets a
 // brief highlight flash so the board reads as alive rather than static.
 func (bw *boardWidget) render(b Board) {
-	for r := 0; r < size; r++ {
-		for c := 0; c < size; c++ {
+	for r := range b {
+		for c := range b[r] {
 			v := b[r][c]
 			prev := bw.last[r][c]
 			bw.cells[r][c].setValue(v)
@@ -131,5 +135,9 @@ func (bw *boardWidget) render(b Board) {
 			}
 		}
 	}
-	bw.last = b
+	last := newEmptyBoard(len(b))
+	for r := range b {
+		copy(last[r], b[r])
+	}
+	bw.last = last
 }

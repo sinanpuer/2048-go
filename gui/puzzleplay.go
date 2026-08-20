@@ -34,7 +34,7 @@ func startPuzzle(win fyne.Window, levelNumber int) {
 	}
 
 	pu := &puzzleUI{win: win, def: def, board: def.StartBoard}
-	pu.bw = newBoardWidget(cellSize)
+	pu.bw = newBoardWidget(cellSize, size)
 	pu.scoreL = widget.NewLabel("")
 	pu.movesL = widget.NewLabel("")
 	pu.comboL = widget.NewLabel("")

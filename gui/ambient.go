@@ -22,7 +22,7 @@ type ambientBoard struct {
 }
 
 func newAmbientBoard(cellPx float32) *ambientBoard {
-	ab := &ambientBoard{bw: newBoardWidget(cellPx), board: newBoard(ModeRandomizer)}
+	ab := &ambientBoard{bw: newBoardWidget(cellPx, size), board: newBoard(ModeRandomizer)}
 	ab.bw.render(ab.board)
 	return ab
 }

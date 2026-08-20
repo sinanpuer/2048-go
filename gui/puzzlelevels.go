@@ -42,7 +42,7 @@ func generatePuzzleLevel(level, total int) PuzzleLevelDef {
 	moveLimit := int(linearGoal(level, total, 18, 38))
 	scoreGoal := roundTo(int(linearGoal(level, total, 30, 6000)), 10)
 
-	var board Board
+	board := newEmptyBoard(size)
 	placed, attempts := 0, 0
 	for placed < tileCount && attempts < 200 {
 		attempts++

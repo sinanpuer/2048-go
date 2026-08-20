@@ -13,10 +13,11 @@ type Settings struct {
 	Theme      string `json:"theme"`
 	FPS        int    `json:"fps"` // 30, 60, or 0 = unlimited
 	Language   Lang   `json:"language"`
+	BoardSize  int    `json:"boardSize"` // 4, 5, or 6 - free play only
 }
 
 func defaultSettings() *Settings {
-	return &Settings{Animations: true, Theme: ThemeClassic, FPS: 60, Language: LangDE}
+	return &Settings{Animations: true, Theme: ThemeClassic, FPS: 60, Language: LangDE, BoardSize: size}
 }
 
 func settingsFilePath() (string, error) {
@@ -50,6 +51,9 @@ func loadSettings() *Settings {
 	}
 	if s.Language != LangDE && s.Language != LangEN {
 		s.Language = LangDE
+	}
+	if s.BoardSize != 4 && s.BoardSize != 5 && s.BoardSize != 6 {
+		s.BoardSize = size
 	}
 	return s
 }

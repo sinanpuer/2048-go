@@ -94,8 +94,8 @@ func startDuel(win fyne.Window, duration int, difficulty BotDifficulty) {
 		startedAt:   time.Now(),
 		stopCh:      make(chan struct{}),
 	}
-	d.playerBW = newBoardWidget(64)
-	d.botBW = newBoardWidget(64)
+	d.playerBW = newBoardWidget(64, size)
+	d.botBW = newBoardWidget(64, size)
 	d.playerScoreL = widget.NewLabel("")
 	d.botScoreL = widget.NewLabel("")
 	d.playerComboL = widget.NewLabel("")

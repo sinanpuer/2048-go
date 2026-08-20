@@ -42,7 +42,7 @@ func (g *gameUI) refresh() {
 	g.bw.render(g.board)
 	g.scoreL.SetText(trf("game.score", g.score))
 	g.modeL.SetText(trf("game.mode", modeName(g.mode)))
-	g.highL.SetText(trf("game.highscore", highscores.get(g.mode)))
+	g.highL.SetText(trf("game.highscore", highscores.get(g.mode, len(g.board))))
 	if g.combo > 0 {
 		g.comboL.SetText(trf("game.combo", g.combo, comboMultiplier(g.combo)))
 	} else {
@@ -71,7 +71,7 @@ func (g *gameUI) applyMove(fn func(Board) (Board, bool, int)) {
 	g.combo, gained = applyCombo(g.combo, gained)
 	g.score += gained
 	spawnTile(&g.board, g.mode)
-	if highscores.update(g.mode, g.score) {
+	if highscores.update(g.mode, g.score, len(g.board)) {
 		g.newHigh = true
 	}
 	if !g.won && hasWon(g.board) {
@@ -121,7 +121,8 @@ func (g *gameUI) showGameOver() {
 }
 
 func startGame(win fyne.Window, mode Mode) {
-	g := &gameUI{win: win, mode: mode, board: newBoard(mode), bw: newBoardWidget(cellSize)}
+	n := settings.BoardSize
+	g := &gameUI{win: win, mode: mode, board: newBoardSized(mode, n), bw: newBoardWidget(cellPxForSize(n), n)}
 
 	g.scoreL = widget.NewLabel("")
 	g.modeL = widget.NewLabel("")
@@ -214,8 +215,10 @@ func buildMenu(win fyne.Window) fyne.CanvasObject {
 
 	buttons := container.NewVBox(btnNormal, btnRandom, btnEndless, btnLevels, btnPuzzle, btnDuel, btnParty, btnSettings)
 
+	n := settings.BoardSize
 	highscoreLine := canvas.NewText(
-		trf("menu.highscores", highscores.get(ModeNormal), highscores.get(ModeRandomizer), highscores.get(ModeEndless)),
+		trf("menu.highscores", n, n,
+			highscores.get(ModeNormal, n), highscores.get(ModeRandomizer, n), highscores.get(ModeEndless, n)),
 		color.NRGBA{R: 0xee, G: 0xee, B: 0xee, A: 0xff},
 	)
 	highscoreLine.Alignment = fyne.TextAlignCenter

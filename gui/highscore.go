@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -53,14 +54,24 @@ func (h *Highscores) save() {
 	_ = os.WriteFile(path, data, 0o644)
 }
 
-func (h *Highscores) get(mode Mode) int {
-	return h.Scores[modeName(mode)]
+// highscoreKey builds the storage key for a mode+board size combination.
+// Board size 4 keeps the plain legacy key (just the mode name) so upgrading
+// from before board sizes existed doesn't lose anyone's existing 4x4 record.
+func highscoreKey(mode Mode, boardSize int) string {
+	if boardSize == 4 {
+		return modeName(mode)
+	}
+	return fmt.Sprintf("%s_%dx%d", modeName(mode), boardSize, boardSize)
 }
 
-// update stores score as the new record for mode if it beats the current
-// one, persists immediately, and reports whether it was a new record.
-func (h *Highscores) update(mode Mode, score int) bool {
-	key := modeName(mode)
+func (h *Highscores) get(mode Mode, boardSize int) int {
+	return h.Scores[highscoreKey(mode, boardSize)]
+}
+
+// update stores score as the new record for mode+boardSize if it beats the
+// current one, persists immediately, and reports whether it was a new record.
+func (h *Highscores) update(mode Mode, score int, boardSize int) bool {
+	key := highscoreKey(mode, boardSize)
 	if score > h.Scores[key] {
 		h.Scores[key] = score
 		h.save()

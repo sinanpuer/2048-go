@@ -8,7 +8,62 @@ import (
 const size = 4
 const cellSize = 100
 
-type Board [size][size]int
+// Board is a square grid of tiles. Most game modes (Levels, Puzzle, Duel,
+// Party) always use newBoard/newBoardWidget with the default `size` (4) and
+// never see any other dimension. Free play is the only mode that lets the
+// player pick a different board size (via newBoardSized), which Board
+// supports by being slice-based rather than a fixed [4][4] array.
+type Board [][]int
+
+// cellPxForSize picks a cell pixel size that keeps the rendered board at
+// roughly the same total width regardless of how many cells are in a row.
+func cellPxForSize(n int) float32 {
+	switch n {
+	case 5:
+		return 80
+	case 6:
+		return 66
+	default:
+		return cellSize
+	}
+}
+
+// newEmptyBoard allocates an n x n grid of zeroed cells.
+func newEmptyBoard(n int) Board {
+	b := make(Board, n)
+	for i := range b {
+		b[i] = make([]int, n)
+	}
+	return b
+}
+
+// boardsEqual reports whether two boards have the same dimensions and cell
+// values. Board is slice-based, so it can't be compared with == or !=.
+func boardsEqual(a, b Board) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for r := range a {
+		if len(a[r]) != len(b[r]) {
+			return false
+		}
+		for c := range a[r] {
+			if a[r][c] != b[r][c] {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func equalRows(a, b []int) bool {
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
 
 type Mode int
 
@@ -31,8 +86,8 @@ func modeName(m Mode) string {
 
 func highestTile(b Board) int {
 	max := 0
-	for r := 0; r < size; r++ {
-		for c := 0; c < size; c++ {
+	for r := range b {
+		for c := range b[r] {
 			if b[r][c] > max {
 				max = b[r][c]
 			}
@@ -90,9 +145,9 @@ func randomTileValue(mode Mode, b Board) int {
 
 func spawnTile(b *Board, mode Mode) bool {
 	var empty [][2]int
-	for r := 0; r < size; r++ {
-		for c := 0; c < size; c++ {
-			if b[r][c] == 0 {
+	for r := range *b {
+		for c := range (*b)[r] {
+			if (*b)[r][c] == 0 {
 				empty = append(empty, [2]int{r, c})
 			}
 		}
@@ -101,19 +156,26 @@ func spawnTile(b *Board, mode Mode) bool {
 		return false
 	}
 	pos := empty[rand.Intn(len(empty))]
-	b[pos[0]][pos[1]] = randomTileValue(mode, *b)
+	(*b)[pos[0]][pos[1]] = randomTileValue(mode, *b)
 	return true
 }
 
-func newBoard(mode Mode) Board {
-	var b Board
+// newBoardSized creates a fresh n x n board with two starting tiles. Free
+// play uses this with the player's chosen size; every other mode goes
+// through newBoard, which always passes the default size (4).
+func newBoardSized(mode Mode, n int) Board {
+	b := newEmptyBoard(n)
 	spawnTile(&b, mode)
 	spawnTile(&b, mode)
 	return b
 }
 
-func compressRow(row [size]int) ([size]int, bool, int) {
-	var result [size]int
+func newBoard(mode Mode) Board {
+	return newBoardSized(mode, size)
+}
+
+func compressRow(row []int) ([]int, bool, int) {
+	result := make([]int, len(row))
 	values := []int{}
 	for _, v := range row {
 		if v != 0 {
@@ -135,22 +197,24 @@ func compressRow(row [size]int) ([size]int, bool, int) {
 	for i, v := range merged {
 		result[i] = v
 	}
-	changed := result != row
+	changed := !equalRows(result, row)
 	return result, changed, gained
 }
 
-func reverseRow(row [size]int) [size]int {
-	var r [size]int
-	for i := 0; i < size; i++ {
-		r[i] = row[size-1-i]
+func reverseRow(row []int) []int {
+	n := len(row)
+	r := make([]int, n)
+	for i := 0; i < n; i++ {
+		r[i] = row[n-1-i]
 	}
 	return r
 }
 
 func transpose(b Board) Board {
-	var t Board
-	for r := 0; r < size; r++ {
-		for c := 0; c < size; c++ {
+	n := len(b)
+	t := newEmptyBoard(n)
+	for r := 0; r < n; r++ {
+		for c := 0; c < n; c++ {
 			t[c][r] = b[r][c]
 		}
 	}
@@ -158,10 +222,10 @@ func transpose(b Board) Board {
 }
 
 func moveLeft(b Board) (Board, bool, int) {
-	var nb Board
+	nb := newEmptyBoard(len(b))
 	moved := false
 	totalGained := 0
-	for r := 0; r < size; r++ {
+	for r := range b {
 		newRow, changed, gained := compressRow(b[r])
 		nb[r] = newRow
 		if changed {
@@ -173,13 +237,13 @@ func moveLeft(b Board) (Board, bool, int) {
 }
 
 func moveRight(b Board) (Board, bool, int) {
-	var reversed Board
-	for r := 0; r < size; r++ {
+	reversed := newEmptyBoard(len(b))
+	for r := range b {
 		reversed[r] = reverseRow(b[r])
 	}
 	nb, moved, gained := moveLeft(reversed)
-	var result Board
-	for r := 0; r < size; r++ {
+	result := newEmptyBoard(len(b))
+	for r := range nb {
 		result[r] = reverseRow(nb[r])
 	}
 	return result, moved, gained
@@ -198,15 +262,16 @@ func moveDown(b Board) (Board, bool, int) {
 }
 
 func hasMoves(b Board) bool {
-	for r := 0; r < size; r++ {
-		for c := 0; c < size; c++ {
+	n := len(b)
+	for r := 0; r < n; r++ {
+		for c := 0; c < n; c++ {
 			if b[r][c] == 0 {
 				return true
 			}
-			if c < size-1 && b[r][c] == b[r][c+1] {
+			if c < n-1 && b[r][c] == b[r][c+1] {
 				return true
 			}
-			if r < size-1 && b[r][c] == b[r+1][c] {
+			if r < n-1 && b[r][c] == b[r+1][c] {
 				return true
 			}
 		}
@@ -215,8 +280,8 @@ func hasMoves(b Board) bool {
 }
 
 func hasWon(b Board) bool {
-	for r := 0; r < size; r++ {
-		for c := 0; c < size; c++ {
+	for r := range b {
+		for c := range b[r] {
 			if b[r][c] >= 2048 {
 				return true
 			}

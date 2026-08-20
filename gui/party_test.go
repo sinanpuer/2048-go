@@ -110,7 +110,7 @@ func TestPartyApplyMoveNoOpDoesNotChangeState(t *testing.T) {
 
 	ps.applyMove("p1", "up")
 
-	if p1.board != before {
+	if !boardsEqual(p1.board, before) {
 		t.Error("a no-op move should not change the board")
 	}
 	if p1.score != 0 {
