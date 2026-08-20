@@ -101,6 +101,16 @@ var i18nDE = map[string]string{
 	"theme.classic": "Klassisch",
 	"theme.stone":   "Stein (Castle)",
 	"theme.candy":   "Suessigkeiten",
+
+	"menu.party":        "Battle Royale (Party)",
+	"party.title":       "Battle Royale (Party)",
+	"party.desc":        "Bis zu 9 Spieler treten im selben Netzwerk (WLAN/Hotspot) live gegeneinander an. Alle spielen ueber ihren Browser mit - kein Download noetig.",
+	"party.create":      "Lobby erstellen",
+	"party.stop":        "Lobby beenden",
+	"party.stopped":     "Lobby beendet.",
+	"party.startFailed": "Konnte Lobby nicht starten: %s",
+	"party.running":     "Lobby laeuft. Alle Mitspieler oeffnen diesen Link im Browser (im selben WLAN/Hotspot):",
+	"party.back":        "Zurueck zum Menue",
 }
 
 var i18nEN = map[string]string{
@@ -195,6 +205,16 @@ var i18nEN = map[string]string{
 	"theme.classic": "Classic",
 	"theme.stone":   "Stone (castle)",
 	"theme.candy":   "Candy",
+
+	"menu.party":        "Battle Royale (party)",
+	"party.title":       "Battle Royale (party)",
+	"party.desc":        "Up to 9 players compete live on the same network (WiFi/hotspot). Everyone plays in their browser - no download needed.",
+	"party.create":      "Create lobby",
+	"party.stop":        "Stop lobby",
+	"party.stopped":     "Lobby stopped.",
+	"party.startFailed": "Could not start lobby: %s",
+	"party.running":     "Lobby is running. Everyone opens this link in their browser (on the same WiFi/hotspot):",
+	"party.back":        "Back to menu",
 }
 
 func tr(key string) string {

@@ -208,8 +208,11 @@ func buildMenu(win fyne.Window) fyne.CanvasObject {
 	btnSettings := widget.NewButton(tr("menu.settings"), goTo(func() {
 		win.SetContent(buildSettings(win))
 	}))
+	btnParty := widget.NewButton(tr("menu.party"), goTo(func() {
+		win.SetContent(buildPartySetup(win))
+	}))
 
-	buttons := container.NewVBox(btnNormal, btnRandom, btnEndless, btnLevels, btnPuzzle, btnDuel, btnSettings)
+	buttons := container.NewVBox(btnNormal, btnRandom, btnEndless, btnLevels, btnPuzzle, btnDuel, btnParty, btnSettings)
 
 	highscoreLine := canvas.NewText(
 		trf("menu.highscores", highscores.get(ModeNormal), highscores.get(ModeRandomizer), highscores.get(ModeEndless)),

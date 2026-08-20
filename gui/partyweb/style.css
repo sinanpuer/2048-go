@@ -1,0 +1,167 @@
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+
+body {
+  margin: 0;
+  background: #2b2825;
+  color: #f2ede4;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.screen { width: 100%; max-width: 480px; text-align: center; }
+.hidden { display: none !important; }
+
+h1 { font-size: 28px; font-weight: 700; margin: 0 0 4px; }
+.subtitle { color: #c9c3b4; font-size: 14px; margin: 0 0 20px; }
+.error { color: #ff6b6b; font-size: 13px; min-height: 18px; }
+
+input {
+  width: 100%;
+  font-size: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #55504a;
+  background: #3a372f;
+  color: #f2ede4;
+  margin-bottom: 12px;
+}
+input:focus { outline: 2px solid #d4af37; }
+
+button {
+  width: 100%;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #d4af37;
+  color: #2b2825;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+button:active { transform: scale(0.98); }
+
+.player-list { list-style: none; padding: 0; margin: 0 0 20px; text-align: left; }
+.player-list li {
+  padding: 10px 14px;
+  background: #3a372f;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+.player-list .host-tag { color: #d4af37; font-size: 12px; }
+
+#countdown-number {
+  font-size: 96px;
+  font-weight: 700;
+  color: #d4af37;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  background: #bbada0;
+  border-radius: 10px;
+  padding: 8px;
+  margin: 0 auto;
+}
+.board-big { width: min(88vw, 380px); height: min(88vw, 380px); }
+.board-mini { width: 100%; aspect-ratio: 1 / 1; }
+
+.tile {
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  background: #cdc1b4;
+  color: #776e65;
+}
+.board-big .tile { font-size: clamp(12px, 5vw, 26px); }
+.board-mini .tile { font-size: clamp(6px, 2.4vw, 12px); }
+
+.play-status {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: #c9c3b4;
+}
+.play-status b { color: #f2ede4; }
+
+#dpad {
+  display: grid;
+  grid-template-columns: 60px 60px 60px;
+  grid-template-rows: 50px 50px;
+  gap: 6px;
+  justify-content: center;
+  margin: 18px auto;
+}
+.dpad-btn {
+  width: 60px;
+  height: 50px;
+  margin: 0;
+  font-size: 20px;
+  background: #3a372f;
+  color: #f2ede4;
+  border: 1px solid #55504a;
+}
+.dpad-up { grid-column: 2; grid-row: 1; }
+.dpad-left { grid-column: 1; grid-row: 2; }
+.dpad-right { grid-column: 3; grid-row: 2; }
+.dpad-down { grid-column: 2; grid-row: 2; }
+
+.sidebar { text-align: left; }
+.sidebar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #3a372f;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+.sidebar-row.dead { opacity: 0.45; text-decoration: line-through; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #6bcB6b; flex-shrink: 0; }
+.sidebar-row.dead .dot { background: #888; }
+.sidebar-name { flex: 1; }
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.overview-card {
+  background: #3a372f;
+  border-radius: 10px;
+  padding: 10px;
+  position: relative;
+}
+.overview-card.dead { opacity: 0.35; }
+.overview-card.winner { outline: 3px solid #3db84a; }
+.overview-name { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.overview-score { font-size: 11px; color: #c9c3b4; }
+
+.victory-banner {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #d4af37;
+  font-weight: 700;
+  font-size: 14px;
+  text-align: center;
+}

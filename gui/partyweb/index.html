@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Merge Kingdom - Battle Royale</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<div id="screen-name" class="screen">
+  <h1>Merge Kingdom</h1>
+  <p class="subtitle">Battle Royale</p>
+  <input id="name-input" maxlength="16" placeholder="Dein Name" autocomplete="off">
+  <button id="join-btn">Beitreten</button>
+  <p id="name-error" class="error"></p>
+</div>
+
+<div id="screen-lobby" class="screen hidden">
+  <h1>Lobby</h1>
+  <p class="subtitle" id="lobby-count"></p>
+  <ul id="lobby-list" class="player-list"></ul>
+  <button id="start-btn" class="hidden">Spiel starten</button>
+  <p id="lobby-wait" class="subtitle">Warte auf den Host...</p>
+</div>
+
+<div id="screen-countdown" class="screen hidden">
+  <p class="subtitle">Gleich geht's los</p>
+  <div id="countdown-number">5</div>
+</div>
+
+<div id="screen-play" class="screen hidden">
+  <div id="play-status" class="play-status"></div>
+  <div id="own-board" class="board board-big"></div>
+  <div id="dpad">
+    <button id="dpad-up" class="dpad-btn dpad-up">▲</button>
+    <button id="dpad-left" class="dpad-btn dpad-left">◀</button>
+    <button id="dpad-right" class="dpad-btn dpad-right">▶</button>
+    <button id="dpad-down" class="dpad-btn dpad-down">▼</button>
+  </div>
+  <div id="sidebar" class="sidebar"></div>
+</div>
+
+<div id="screen-overview" class="screen hidden">
+  <h1 id="overview-title">Zuschauer-Uebersicht</h1>
+  <div id="overview-grid" class="overview-grid"></div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
