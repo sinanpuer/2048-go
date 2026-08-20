@@ -174,11 +174,11 @@ func startGame(win fyne.Window, mode Mode) {
 // ---------- main menu ----------
 
 func buildMenu(win fyne.Window) fyne.CanvasObject {
-	ambient := newAmbientBoard()
+	ambient := newAmbientWall(4, 5, 34)
 	ambient.start()
 
-	title := canvas.NewText("2048", color.White)
-	title.TextSize = 44
+	title := canvas.NewText("Merge Kingdom", color.White)
+	title.TextSize = 38
 	title.TextStyle = fyne.TextStyle{Bold: true}
 	title.Alignment = fyne.TextAlignCenter
 
@@ -239,7 +239,7 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	a := app.NewWithID("com.sinan.go2048gui")
-	w := a.NewWindow("2048")
+	w := a.NewWindow("Merge Kingdom")
 	w.Resize(fyne.NewSize(720, 820))
 	w.SetFixedSize(true)
 	w.SetContent(buildMenu(w))
