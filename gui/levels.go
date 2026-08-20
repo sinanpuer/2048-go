@@ -76,16 +76,26 @@ func generateLevels(n int) []LevelDef {
 	return levels
 }
 
+// linearGoal interpolates a value between start (at level 1) and end (at
+// the final level) in a straight line, so difficulty ramps up steadily
+// instead of exploding late-game.
+func linearGoal(level int, start, end float64) float64 {
+	if totalLevels <= 1 {
+		return start
+	}
+	t := float64(level-1) / float64(totalLevels-1)
+	return start + (end-start)*t
+}
+
 func scoreGoalForLevel(level int) int {
-	v := 50 * math.Pow(float64(level), 1.55)
-	return roundTo(int(v), 10)
+	return roundTo(int(linearGoal(level, 60, 9200)), 10)
 }
 
 func tileGoalForLevel(level int) int {
 	var exp float64
 	if level <= 50 {
 		t := float64(level-1) / 49.0
-		exp = 2 + 9*math.Pow(t, 1.3)
+		exp = 3 + 8*math.Pow(t, 1.15)
 	} else {
 		t := float64(level-50) / 50.0
 		exp = 11 + t*t
@@ -106,12 +116,11 @@ func timeLimitForLevel(level int) int {
 }
 
 func timedScoreGoalForLevel(level int) int {
-	v := 20 * math.Pow(10, float64(level-1)/49.0)
-	return roundTo(int(v), 5)
+	return roundTo(int(linearGoal(level, 30, 1400)), 5)
 }
 
 func timedTileGoalForLevel(level int) int {
-	exp := 3 + 6*float64(level-1)/99.0
+	exp := 4 + 5*float64(level-1)/99.0
 	e := int(math.Round(exp))
 	if e < 1 {
 		e = 1
