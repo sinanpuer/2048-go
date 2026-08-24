@@ -1,0 +1,36 @@
+name: Build browser (WebAssembly) version
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "gui/**"
+      - ".github/workflows/build-wasm.yml"
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: gui/go.mod
+
+      - name: Build WASM
+        working-directory: gui
+        run: GOOS=js GOARCH=wasm go build -ldflags="-s -w" -trimpath -o ../docs/game.wasm .
+
+      - name: Copy matching wasm_exec.js
+        run: cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" docs/wasm_exec.js
+
+      - name: Commit updated build
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/game.wasm docs/wasm_exec.js
+          git diff --cached --quiet || git commit -m "chore: rebuild browser (wasm) build"
+          git push

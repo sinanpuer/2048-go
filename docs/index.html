@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Merge Kingdom (2048)</title>
+	<style>
+		body {
+			text-align: center;
+			background: #0f172a;
+			color: #eee;
+			font-family: system-ui, sans-serif;
+			margin: 0;
+		}
+		.centered-container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			min-height: 100vh;
+		}
+		.action-error { color: #f88; max-width: 32em; margin: 0 auto; }
+	</style>
+	<script>
+		function getChromeVersion() {
+			var raw = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
+			return raw ? parseInt(raw[2], 10) : 0;
+		}
+
+		var wasmBuild = true;
+		if (window.chrome) {
+			if (getChromeVersion() < 106) {
+				wasmBuild = false;
+			}
+		}
+	</script>
+	<script>
+		function async_load(file, cb) {
+			var d = document, t = 'script',
+				o = d.createElement(t),
+				s = d.getElementsByTagName(t)[0];
+			o.src = file;
+			o.addEventListener('load', function (e) { cb(e); }, false);
+			s.parentNode.insertBefore(o, s);
+		}
+
+		function webgl_support() {
+			try {
+				var canvas = document.createElement('canvas');
+				return !!window.WebGLRenderingContext &&
+					(canvas.getContext('webgl') || canvas.getContext('experimental-webgl'));
+			} catch (e) {
+				return false;
+			}
+		}
+
+		function download_application() {
+			var action = document.getElementById("action");
+			var main = document.getElementById("main");
+
+			if (webgl_support()) {
+				if (wasmBuild && window.WebAssembly) {
+					action.innerHTML = "Lade wasm_exec.js …";
+					async_load("wasm_exec.js", function () {
+						if (WebAssembly && !WebAssembly.instantiateStreaming) {
+							WebAssembly.instantiateStreaming = async (resp, importObject) => {
+								const source = await (await resp).arrayBuffer();
+								return await WebAssembly.instantiate(source, importObject);
+							};
+						}
+
+						action.innerHTML = "Lade Spiel (ca. 12 MB, einmalig) …";
+
+						const go = new Go();
+						WebAssembly.instantiateStreaming(fetch("game.wasm"), go.importObject).then((result) => {
+							main.innerHTML = "";
+							go.run(result.instance);
+						}).catch((err) => {
+							action.innerHTML = "Fehler beim Laden: " + err;
+							action.className = "action-error";
+						});
+					});
+				} else {
+					action.innerHTML = "WebAssembly wird von diesem Browser nicht unterstützt.";
+					action.className = "action-error";
+				}
+			} else {
+				action.innerHTML = "WebGL wird von diesem Browser nicht unterstützt. Bitte einen aktuellen Browser (Chrome, Firefox, Edge) verwenden.";
+				action.className = "action-error";
+			}
+		}
+	</script>
+</head>
+<body scroll="no" style="overflow: hidden" onload="download_application()">
+	<div id="main">
+		<div class="centered-container">
+			<h1>Merge Kingdom (2048)</h1>
+			<p id="action">Lade …</p>
+		</div>
+	</div>
+	<input id="dummyEntry" style="position: absolute; left: 0; top: -100pt; z-index: -10; font-size: 32pt;" />
+</body>
+</html>
