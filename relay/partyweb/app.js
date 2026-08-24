@@ -412,7 +412,17 @@
       if (isGameOver && p.id === msg.winnerId) {
         var banner = document.createElement("div");
         banner.className = "victory-banner";
-        banner.textContent = "Gewonnen!";
+
+        var winnerName = document.createElement("div");
+        winnerName.className = "victory-name";
+        winnerName.textContent = p.name + (p.id === youId ? " (Du)" : "");
+        banner.appendChild(winnerName);
+
+        var label = document.createElement("div");
+        label.className = "victory-label";
+        label.textContent = "Gewonnen!";
+        banner.appendChild(label);
+
         card.appendChild(banner);
       }
 
