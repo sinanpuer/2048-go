@@ -23,21 +23,40 @@ gebaut, sobald sich der Code ändert (siehe
 
 ## Spielen unter Windows (kein Go, kein Compiler nötig)
 
-Für zu Hause bzw. auf Rechnern, wo Downloads erlaubt sind (auf gesperrten
-Schul-PCs stattdessen die Browser-Version oben nutzen):
+Auch wenn Netzwerke/Filter (z. B. in der Schule) `.exe`-Downloads blockieren,
+lässt sich meist eine `.zip`-Datei herunterladen:
 
 1. Geh auf die [Releases-Seite](../../releases) dieses Repos.
-2. Lade unter dem neuesten Release die Datei **`MergeKingdom.exe`** herunter.
-3. Doppelklick auf die `.exe` — fertig, kein Setup, keine Installation, keine
-   weiteren Downloads nötig.
+2. Lade unter dem neuesten Release die Datei **`MergeKingdom.zip`** herunter
+   (nicht die `.exe` direkt — die wird von vielen Filtern blockiert, die
+   `.zip` meist nicht).
+3. Rechtsklick auf die zip → **"Alle extrahieren"**.
+4. Doppelklick auf die extrahierte `MergeKingdom.exe` — kein Setup, keine
+   Installation, keine Adminrechte nötig.
 
 Jedes Release wird automatisch per GitHub Actions aus dem Quellcode gebaut
 (siehe [`.github/workflows/build-windows.yml`](.github/workflows/build-windows.yml)).
-Es gibt dort auch eine `2048-cli.exe` für die Terminal-Version.
+Es gibt dort auch ein `2048-cli.zip` mit der Terminal-Version.
 
 Falls es noch kein Release gibt: Im Tab **Actions** den Workflow *"Build
-Windows executable"* manuell ausführen (*Run workflow*) — danach liegt die
-`.exe` als Artefakt am Ende des Laufs zum Download bereit.
+Windows executable"* manuell ausführen (*Run workflow*) — danach liegen die
+`.zip`-Dateien als Artefakt am Ende des Laufs zum Download bereit.
+
+### Mit einem Freund spielen (Battle Royale / Party)
+
+Nur **eine Person** braucht die `.exe` (den "Host"), die andere(n) können
+über den normalen Browser mitspielen — solange ihr im selben WLAN seid
+(z. B. Schul-WLAN reicht):
+
+1. Host öffnet `MergeKingdom.exe` → **"Battle Royale (Party)"** →
+   **"Party erstellen"**. Es erscheint ein Link (z. B.
+   `http://192.168.x.x:8787`).
+2. Diesen Link an die anderen schicken (WhatsApp, AirDrop, vorlesen, …).
+3. Alle anderen öffnen den Link einfach in ihrem normalen Browser (auch am
+   Schul-PC, ganz ohne Download) — fertig, alle spielen zusammen.
+
+Hinweis: Der Host-PC muss beim ersten Start evtl. die **Windows-Firewall**
+für eingehende Verbindungen freigeben (Windows fragt automatisch danach).
 
 ## Neues Release erstellen (für Maintainer)
 
