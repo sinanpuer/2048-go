@@ -219,6 +219,16 @@
   }
   if (isNewRoom) {
     el("room-share").textContent = "Dein Einladungslink zum Teilen:";
+
+    if (typeof qrcode === "function") {
+      var qr = qrcode(0, "M");
+      qr.addData(location.href);
+      qr.make();
+      var qrBox = el("room-qr");
+      qrBox.innerHTML = qr.createSvgTag({ cellSize: 5, margin: 8, scalable: true });
+      qrBox.classList.remove("hidden");
+    }
+
     var copyBtn = el("copy-link-btn");
     copyBtn.classList.remove("hidden");
     copyBtn.addEventListener("click", function () {

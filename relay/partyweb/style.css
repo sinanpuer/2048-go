@@ -54,6 +54,15 @@ h1 { font-size: 28px; font-weight: 700; margin: 0 0 4px; }
 #room-share { word-break: break-all; user-select: text; }
 .error { color: #ff6b6b; font-size: 13px; min-height: 18px; }
 
+#room-qr {
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px;
+  width: fit-content;
+  margin: 0 auto 14px;
+}
+#room-qr svg { display: block; width: 160px; height: 160px; }
+
 input {
   width: 100%;
   font-size: 16px;
