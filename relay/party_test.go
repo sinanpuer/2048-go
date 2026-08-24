@@ -196,6 +196,54 @@ func TestPartyWinnerIsHighestScoreNotJustSurvivor(t *testing.T) {
 	}
 }
 
+func TestPartyRestartReturnsToLobbyWithSamePlayers(t *testing.T) {
+	ps := newPartyServer()
+	host := newTestPlayer("p1", "Alice")
+	host.score = 300
+	host.alive = false
+	other := newTestPlayer("p2", "Bob")
+	other.score = 50
+	ps.players = []*partyPlayer{host, other}
+	ps.hostID = "p1"
+	ps.phase = partyPhaseGameOver
+	ps.winnerID = "p1"
+
+	ps.tryRestart("p2") // non-host must not be able to restart
+	if ps.phase != partyPhaseGameOver {
+		t.Fatal("expected a non-host restart attempt to be ignored")
+	}
+
+	ps.tryRestart("p1")
+	if ps.phase != partyPhaseLobby {
+		t.Fatalf("expected phase=lobby after host restarts, got %s", ps.phase)
+	}
+	if ps.winnerID != "" {
+		t.Errorf("expected winnerID to be cleared, got %q", ps.winnerID)
+	}
+	if len(ps.players) != 2 {
+		t.Fatalf("expected both connected players to carry over, got %d", len(ps.players))
+	}
+	if !host.alive || host.score != 0 {
+		t.Errorf("expected host to be reset to alive/score 0, got alive=%v score=%d", host.alive, host.score)
+	}
+}
+
+func TestPartyRestartDropsDisconnectedPlayers(t *testing.T) {
+	ps := newPartyServer()
+	host := newTestPlayer("p1", "Alice")
+	gone := newTestPlayer("p2", "Bob")
+	gone.connected = false
+	ps.players = []*partyPlayer{host, gone}
+	ps.hostID = "p1"
+	ps.phase = partyPhaseGameOver
+
+	ps.tryRestart("p1")
+
+	if len(ps.players) != 1 || ps.players[0].id != "p1" {
+		t.Fatalf("expected only the still-connected host to carry over, got %d players", len(ps.players))
+	}
+}
+
 func TestPartyDisconnectDuringLobbyRemovesPlayerAndReassignsHost(t *testing.T) {
 	ps := newPartyServer()
 	p1, _ := ps.addPlayer(nil, "Alice")

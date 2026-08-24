@@ -135,6 +135,10 @@ func (ps *partyServer) handleWS(conn *websocket.Conn) {
 			if p != nil {
 				ps.tryStart(p.id)
 			}
+		case "restart":
+			if p != nil {
+				ps.tryRestart(p.id)
+			}
 		case "move":
 			if p != nil {
 				ps.applyMove(p.id, msg.Dir)
@@ -217,6 +221,50 @@ func (ps *partyServer) tryStart(byID string) {
 	ps.broadcastState()
 
 	go ps.runCountdown()
+}
+
+// tryRestart lets the host take the group from the game-over screen back
+// into the lobby with the same players, instead of everyone needing a new
+// invite link. Anyone who disconnected during the last match is dropped;
+// only players still connected carry over.
+func (ps *partyServer) tryRestart(byID string) {
+	ps.mu.Lock()
+	if ps.phase != partyPhaseGameOver || byID != ps.hostID {
+		ps.mu.Unlock()
+		return
+	}
+
+	remaining := ps.players[:0]
+	for _, pl := range ps.players {
+		if pl.connected {
+			pl.alive = true
+			pl.score = 0
+			pl.combo = 0
+			remaining = append(remaining, pl)
+		}
+	}
+	ps.players = remaining
+
+	ps.winnerID = ""
+	ps.countdownRemaining = 0
+	ps.phase = partyPhaseLobby
+
+	if len(ps.players) == 0 {
+		ps.hostID = ""
+	} else {
+		stillHost := false
+		for _, pl := range ps.players {
+			if pl.id == ps.hostID {
+				stillHost = true
+				break
+			}
+		}
+		if !stillHost {
+			ps.hostID = ps.players[0].id
+		}
+	}
+	ps.mu.Unlock()
+	ps.broadcastState()
 }
 
 func (ps *partyServer) runCountdown() {

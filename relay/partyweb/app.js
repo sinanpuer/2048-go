@@ -104,6 +104,10 @@
     send({ type: "start" });
   });
 
+  el("restart-btn").addEventListener("click", function () {
+    send({ type: "restart" });
+  });
+
   function handleState(msg) {
     youId = msg.youId;
 
@@ -220,6 +224,10 @@
 
       grid.appendChild(card);
     });
+
+    var isHost = youId === msg.hostId;
+    el("restart-btn").classList.toggle("hidden", !(isGameOver && isHost));
+    el("restart-wait").classList.toggle("hidden", !(isGameOver && !isHost));
   }
 
   function move(dir) {
