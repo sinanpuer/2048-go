@@ -29,10 +29,19 @@ war früher nötig, ist aber an vielen Netzwerken wie Schul-WLANs unzuverlässig
 weil die oft die direkte Verbindung zwischen Geräten blockieren):
 
 1. Irgendwer öffnet **"Battle Royale (Party)"** → **"Lobby erstellen"**. Es
-   erscheint ein Link.
-2. Diesen Link an die anderen schicken (WhatsApp, Discord, vorlesen, …).
+   erscheint ein Link samt QR-Code (per "Link kopieren"-Button oder Scannen
+   direkt teilbar).
+2. Diesen Link an die anderen schicken (WhatsApp, Discord, vorlesen, …) oder
+   den QR-Code mit dem Handy scannen lassen.
 3. Alle öffnen den Link einfach in ihrem Browser (auch am Schul-PC, ganz ohne
    Download) — fertig, alle spielen zusammen, live gegeneinander.
+4. Nach Spielende kann der Host über **"Neues Spiel"** direkt eine neue Runde
+   mit denselben Spielern starten, ohne dass alle den Link erneut öffnen
+   müssen.
+
+Der Link zur Lobby-Seite selbst ist übrigens immer fix:
+**<https://merge-kingdom-relay.onrender.com/>** — dafür muss man nie bei
+Render nachschauen, einfach direkt öffnen/bookmarken.
 
 Das läuft über einen kleinen extern gehosteten Relay-Server (siehe
 [`relay/`](relay/)) - der leitet nur Züge/Spielstände zwischen den Spielern
