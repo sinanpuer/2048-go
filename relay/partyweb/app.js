@@ -65,7 +65,38 @@
     history.replaceState(null, "", location.pathname + "?" + params.toString());
   }
   if (isNewRoom) {
-    el("room-share").textContent = "Dein Einladungslink (Adressleiste kopieren und teilen): " + location.href;
+    el("room-share").textContent = "Dein Einladungslink zum Teilen:";
+    var copyBtn = el("copy-link-btn");
+    copyBtn.classList.remove("hidden");
+    copyBtn.addEventListener("click", function () {
+      var reset = function () { copyBtn.textContent = "Link kopieren"; };
+      var showCopied = function () {
+        copyBtn.textContent = "Kopiert!";
+        setTimeout(reset, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(location.href).then(showCopied, function () {
+          copyBtn.textContent = "Kopieren fehlgeschlagen";
+          setTimeout(reset, 1500);
+        });
+      } else {
+        // Fallback for browsers/contexts without the async Clipboard API.
+        var tmp = document.createElement("textarea");
+        tmp.value = location.href;
+        tmp.style.position = "fixed";
+        tmp.style.opacity = "0";
+        document.body.appendChild(tmp);
+        tmp.select();
+        try {
+          document.execCommand("copy");
+          showCopied();
+        } catch (e) {
+          copyBtn.textContent = "Kopieren fehlgeschlagen";
+          setTimeout(reset, 1500);
+        }
+        document.body.removeChild(tmp);
+      }
+    });
   } else {
     el("room-share").textContent = "Raum: " + roomCode;
   }
