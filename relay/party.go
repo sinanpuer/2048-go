@@ -298,19 +298,32 @@ func (ps *partyServer) checkGameOverLocked() {
 		return
 	}
 	aliveCount := 0
-	var lastAlive *partyPlayer
 	for _, p := range ps.players {
 		if p.alive {
 			aliveCount++
-			lastAlive = p
 		}
 	}
 	if aliveCount > 1 {
 		return
 	}
 	ps.phase = partyPhaseGameOver
-	if lastAlive != nil {
-		ps.winnerID = lastAlive.id
+	// The match ends once at most one player is still going, but the
+	// winner is whoever scored the most overall - surviving longer isn't
+	// worth anything on its own if someone else racked up a higher score
+	// before getting stuck. Ties go to whoever is still alive.
+	var winner *partyPlayer
+	for _, p := range ps.players {
+		switch {
+		case winner == nil:
+			winner = p
+		case p.score > winner.score:
+			winner = p
+		case p.score == winner.score && p.alive && !winner.alive:
+			winner = p
+		}
+	}
+	if winner != nil {
+		ps.winnerID = winner.id
 	}
 }
 

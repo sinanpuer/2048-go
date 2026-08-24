@@ -171,6 +171,31 @@ func TestPartyGameOverWhenOneRemains(t *testing.T) {
 	}
 }
 
+// TestPartyWinnerIsHighestScoreNotJustSurvivor guards against the bug found
+// during real play: the match used to declare whoever was still standing
+// the winner, even if another player scored far more before getting stuck.
+func TestPartyWinnerIsHighestScoreNotJustSurvivor(t *testing.T) {
+	ps := newPartyServer()
+	highScorerEliminated := newTestPlayer("p1", "Alice")
+	highScorerEliminated.score = 500
+	lowScorerSurvivor := newTestPlayer("p2", "Bob")
+	lowScorerSurvivor.score = 50
+	ps.players = []*partyPlayer{highScorerEliminated, lowScorerSurvivor}
+	ps.phase = partyPhasePlaying
+
+	highScorerEliminated.alive = false
+	ps.mu.Lock()
+	ps.checkGameOverLocked()
+	ps.mu.Unlock()
+
+	if ps.phase != partyPhaseGameOver {
+		t.Fatalf("expected phase=gameover with 1 player left, got %s", ps.phase)
+	}
+	if ps.winnerID != "p1" {
+		t.Errorf("expected the higher-scoring player p1 to win despite being eliminated first, got %q", ps.winnerID)
+	}
+}
+
 func TestPartyDisconnectDuringLobbyRemovesPlayerAndReassignsHost(t *testing.T) {
 	ps := newPartyServer()
 	p1, _ := ps.addPlayer(nil, "Alice")
