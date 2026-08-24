@@ -49,9 +49,30 @@
   var youId = null;
   var joined = false;
 
+  function randomRoomCode() {
+    var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I
+    var code = "";
+    for (var i = 0; i < 5; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    return code;
+  }
+
+  var params = new URLSearchParams(location.search);
+  var roomCode = params.get("room");
+  var isNewRoom = !roomCode;
+  if (!roomCode) {
+    roomCode = randomRoomCode();
+    params.set("room", roomCode);
+    history.replaceState(null, "", location.pathname + "?" + params.toString());
+  }
+  if (isNewRoom) {
+    el("room-share").textContent = "Dein Einladungslink (Adressleiste kopieren und teilen): " + location.href;
+  } else {
+    el("room-share").textContent = "Raum: " + roomCode;
+  }
+
   function connect() {
     var proto = location.protocol === "https:" ? "wss://" : "ws://";
-    socket = new WebSocket(proto + location.host + "/ws");
+    socket = new WebSocket(proto + location.host + "/ws?room=" + encodeURIComponent(roomCode));
     socket.onmessage = function (ev) {
       var msg = JSON.parse(ev.data);
       if (msg.type === "state") handleState(msg);

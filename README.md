@@ -21,6 +21,23 @@ Der Build unter `docs/` wird automatisch per GitHub Actions aus `gui/` neu
 gebaut, sobald sich der Code ändert (siehe
 [`.github/workflows/build-wasm.yml`](.github/workflows/build-wasm.yml)).
 
+## Mit Freunden spielen (Battle Royale / Party)
+
+Funktioniert sowohl aus der Browser- als auch der Windows-Version, und
+zwischen beiden gemischt - über das Internet, nicht nur im selben WLAN (das
+war früher nötig, ist aber an vielen Netzwerken wie Schul-WLANs unzuverlässig,
+weil die oft die direkte Verbindung zwischen Geräten blockieren):
+
+1. Irgendwer öffnet **"Battle Royale (Party)"** → **"Lobby erstellen"**. Es
+   erscheint ein Link.
+2. Diesen Link an die anderen schicken (WhatsApp, Discord, vorlesen, …).
+3. Alle öffnen den Link einfach in ihrem Browser (auch am Schul-PC, ganz ohne
+   Download) — fertig, alle spielen zusammen, live gegeneinander.
+
+Das läuft über einen kleinen extern gehosteten Relay-Server (siehe
+[`relay/`](relay/)) - der leitet nur Züge/Spielstände zwischen den Spielern
+weiter, läuft aber unabhängig von jedem Spieler-PC.
+
 ## Spielen unter Windows (kein Go, kein Compiler nötig)
 
 Auch wenn Netzwerke/Filter (z. B. in der Schule) `.exe`-Downloads blockieren,
@@ -41,22 +58,6 @@ Es gibt dort auch ein `2048-cli.zip` mit der Terminal-Version.
 Falls es noch kein Release gibt: Im Tab **Actions** den Workflow *"Build
 Windows executable"* manuell ausführen (*Run workflow*) — danach liegen die
 `.zip`-Dateien als Artefakt am Ende des Laufs zum Download bereit.
-
-### Mit einem Freund spielen (Battle Royale / Party)
-
-Nur **eine Person** braucht die `.exe` (den "Host"), die andere(n) können
-über den normalen Browser mitspielen — solange ihr im selben WLAN seid
-(z. B. Schul-WLAN reicht):
-
-1. Host öffnet `MergeKingdom.exe` → **"Battle Royale (Party)"** →
-   **"Party erstellen"**. Es erscheint ein Link (z. B.
-   `http://192.168.x.x:8787`).
-2. Diesen Link an die anderen schicken (WhatsApp, AirDrop, vorlesen, …).
-3. Alle anderen öffnen den Link einfach in ihrem normalen Browser (auch am
-   Schul-PC, ganz ohne Download) — fertig, alle spielen zusammen.
-
-Hinweis: Der Host-PC muss beim ersten Start evtl. die **Windows-Firewall**
-für eingehende Verbindungen freigeben (Windows fragt automatisch danach).
 
 ## Neues Release erstellen (für Maintainer)
 
@@ -80,3 +81,17 @@ go build -o MergeKingdom.exe .
 cd ../cli
 go build -o 2048-cli.exe .
 ```
+
+## Party-Relay-Server deployen (für Maintainer)
+
+`relay/` ist ein eigenständiges Go-Modul (kein Fyne, keine GUI-Abhängigkeiten)
+- läuft z. B. kostenlos auf [Render](https://render.com):
+
+1. Auf Render: **New +** → **Web Service** → Repo `2048-go` verbinden.
+2. **Root Directory**: `relay`
+3. **Runtime**: Docker (das `relay/Dockerfile` wird automatisch erkannt)
+4. **Instance Type**: Free
+5. Deploy. Bei jedem Push auf `main`, der `relay/**` ändert, baut Render neu.
+
+Die App (`gui/party.go`, Konstante `partyRelayHost`) muss dann auf die
+tatsächliche Render-URL zeigen.

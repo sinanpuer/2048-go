@@ -20,30 +20,26 @@ func buildPartySetup(win fyne.Window) fyne.CanvasObject {
 
 	linkBox := container.NewVBox()
 
-	var ps *partyServer
+	var roomOpen bool
 
 	startBtn := widget.NewButton(tr("party.create"), nil)
-	stopBtn := widget.NewButton(tr("party.stop"), func() {
-		if ps != nil {
-			ps.stop()
-			ps = nil
-		}
-		statusL.SetText(tr("party.stopped"))
-		linkBox.RemoveAll()
-	})
+	stopBtn := widget.NewButton(tr("party.stop"), nil)
 	stopBtn.Hide()
 
+	stopBtn.OnTapped = func() {
+		roomOpen = false
+		statusL.SetText(tr("party.stopped"))
+		linkBox.RemoveAll()
+		startBtn.Show()
+		stopBtn.Hide()
+	}
+
 	startBtn.OnTapped = func() {
-		if ps != nil {
+		if roomOpen {
 			return
 		}
-		ps = newPartyServer()
-		addr, err := ps.start()
-		if err != nil {
-			statusL.SetText(trf("party.startFailed", err.Error()))
-			ps = nil
-			return
-		}
+		roomOpen = true
+		addr := partyRoomURL(newPartyRoomCode())
 
 		statusL.SetText(tr("party.running"))
 		linkBox.RemoveAll()
@@ -59,10 +55,6 @@ func buildPartySetup(win fyne.Window) fyne.CanvasObject {
 	}
 
 	backBtn := widget.NewButton(tr("party.back"), func() {
-		if ps != nil {
-			ps.stop()
-			ps = nil
-		}
 		win.SetContent(buildMenu(win))
 	})
 

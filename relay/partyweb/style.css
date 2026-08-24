@@ -17,6 +17,7 @@ body {
 
 h1 { font-size: 28px; font-weight: 700; margin: 0 0 4px; }
 .subtitle { color: #c9c3b4; font-size: 14px; margin: 0 0 20px; }
+#room-share { word-break: break-all; user-select: text; }
 .error { color: #ff6b6b; font-size: 13px; min-height: 18px; }
 
 input {

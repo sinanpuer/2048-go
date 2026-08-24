@@ -105,12 +105,12 @@ var i18nDE = map[string]string{
 
 	"menu.party":        "Battle Royale (Party)",
 	"party.title":       "Battle Royale (Party)",
-	"party.desc":        "Bis zu 9 Spieler treten im selben Netzwerk (WLAN/Hotspot) live gegeneinander an. Alle spielen ueber ihren Browser mit - kein Download noetig.",
+	"party.desc":        "Bis zu 9 Spieler treten live gegeneinander an, egal in welchem Netzwerk. Alle spielen ueber ihren Browser mit - kein Download noetig.",
 	"party.create":      "Lobby erstellen",
 	"party.stop":        "Lobby beenden",
 	"party.stopped":     "Lobby beendet.",
 	"party.startFailed": "Konnte Lobby nicht starten: %s",
-	"party.running":     "Lobby laeuft. Alle Mitspieler oeffnen diesen Link im Browser (im selben WLAN/Hotspot):",
+	"party.running":     "Lobby erstellt. Alle Mitspieler oeffnen diesen Link im Browser:",
 	"party.back":        "Zurueck zum Menue",
 }
 
@@ -210,12 +210,12 @@ var i18nEN = map[string]string{
 
 	"menu.party":        "Battle Royale (party)",
 	"party.title":       "Battle Royale (party)",
-	"party.desc":        "Up to 9 players compete live on the same network (WiFi/hotspot). Everyone plays in their browser - no download needed.",
+	"party.desc":        "Up to 9 players compete live, on any network. Everyone plays in their browser - no download needed.",
 	"party.create":      "Create lobby",
 	"party.stop":        "Stop lobby",
 	"party.stopped":     "Lobby stopped.",
 	"party.startFailed": "Could not start lobby: %s",
-	"party.running":     "Lobby is running. Everyone opens this link in their browser (on the same WiFi/hotspot):",
+	"party.running":     "Lobby created. Everyone opens this link in their browser:",
 	"party.back":        "Back to menu",
 }
 
