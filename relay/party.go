@@ -351,7 +351,10 @@ func (ps *partyServer) checkGameOverLocked() {
 			aliveCount++
 		}
 	}
-	if aliveCount > 1 {
+	if aliveCount > 0 {
+		// Players who get stuck early stay in the match as spectators
+		// (their client switches to the overview screen) and can watch
+		// everyone else until the last board also has no moves left.
 		return
 	}
 	ps.phase = partyPhaseGameOver
