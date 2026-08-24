@@ -26,6 +26,159 @@
     ["screen-name", "screen-lobby", "screen-countdown", "screen-play", "screen-overview"].forEach(function (s) {
       el(s).classList.toggle("hidden", s !== id);
     });
+    // The ambient wall is flavor for the waiting/menu-ish screens; hide it
+    // once someone is actively playing so it doesn't compete for attention
+    // with their own board.
+    var wall = document.getElementById("ambient-wall");
+    if (wall) wall.classList.toggle("hidden", id === "screen-play");
+  }
+
+  // ---------- ambient background: a wall of small self-playing boards,
+  // mirroring the animated backdrop on the desktop app's main menu ----------
+
+  function ambientEmptyBoard() {
+    return [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+  }
+
+  function ambientSpawnTile(b) {
+    var empty = [];
+    for (var r = 0; r < 4; r++) {
+      for (var c = 0; c < 4; c++) {
+        if (b[r][c] === 0) empty.push([r, c]);
+      }
+    }
+    if (!empty.length) return false;
+    var pos = empty[Math.floor(Math.random() * empty.length)];
+    b[pos[0]][pos[1]] = Math.random() < 0.1 ? 4 : 2;
+    return true;
+  }
+
+  function ambientFreshBoard() {
+    var b = ambientEmptyBoard();
+    ambientSpawnTile(b);
+    ambientSpawnTile(b);
+    return b;
+  }
+
+  function ambientCompressRow(row) {
+    var values = row.filter(function (v) { return v !== 0; });
+    var merged = [];
+    for (var i = 0; i < values.length; i++) {
+      if (i < values.length - 1 && values[i] === values[i + 1]) {
+        merged.push(values[i] * 2);
+        i++;
+      } else {
+        merged.push(values[i]);
+      }
+    }
+    while (merged.length < 4) merged.push(0);
+    var changed = false;
+    for (var j = 0; j < 4; j++) {
+      if (merged[j] !== row[j]) changed = true;
+    }
+    return { row: merged, changed: changed };
+  }
+
+  function ambientMoveLeft(b) {
+    var nb = [], moved = false;
+    for (var r = 0; r < 4; r++) {
+      var res = ambientCompressRow(b[r]);
+      nb.push(res.row);
+      if (res.changed) moved = true;
+    }
+    return { board: nb, moved: moved };
+  }
+
+  function ambientReverseRow(row) { return row.slice().reverse(); }
+
+  function ambientMoveRight(b) {
+    var res = ambientMoveLeft(b.map(ambientReverseRow));
+    return { board: res.board.map(ambientReverseRow), moved: res.moved };
+  }
+
+  function ambientTranspose(b) {
+    var t = ambientEmptyBoard();
+    for (var r = 0; r < 4; r++) {
+      for (var c = 0; c < 4; c++) t[c][r] = b[r][c];
+    }
+    return t;
+  }
+
+  function ambientMoveUp(b) {
+    var res = ambientMoveLeft(ambientTranspose(b));
+    return { board: ambientTranspose(res.board), moved: res.moved };
+  }
+
+  function ambientMoveDown(b) {
+    var res = ambientMoveRight(ambientTranspose(b));
+    return { board: ambientTranspose(res.board), moved: res.moved };
+  }
+
+  var AMBIENT_MOVES = [ambientMoveUp, ambientMoveDown, ambientMoveLeft, ambientMoveRight];
+
+  function ambientRenderBoard(entry) {
+    var tiles = entry.el.children;
+    var idx = 0;
+    for (var r = 0; r < 4; r++) {
+      for (var c = 0; c < 4; c++) {
+        var v = entry.board[r][c];
+        var colors = tileColors(v);
+        var tile = tiles[idx++];
+        tile.style.background = v === 0 ? "#3a372f" : colors[0];
+        tile.style.color = colors[1];
+        tile.textContent = v === 0 ? "" : String(v);
+      }
+    }
+  }
+
+  function ambientTick(entry) {
+    var order = [0, 1, 2, 3].sort(function () { return Math.random() - 0.5; });
+    var moved = false, next = null;
+    for (var i = 0; i < order.length; i++) {
+      var res = AMBIENT_MOVES[order[i]](entry.board);
+      if (res.moved) {
+        next = res.board;
+        moved = true;
+        break;
+      }
+    }
+    entry.board = moved ? next : ambientFreshBoard();
+    if (moved) ambientSpawnTile(entry.board);
+    ambientRenderBoard(entry);
+  }
+
+  function initAmbientWall() {
+    var wall = document.createElement("div");
+    wall.id = "ambient-wall";
+    var overlay = document.createElement("div");
+    overlay.id = "ambient-overlay";
+    document.body.insertBefore(overlay, document.body.firstChild);
+    document.body.insertBefore(wall, document.body.firstChild);
+
+    var boardPx = 4 * 17 + 3 * 3 + 2 * 8; // tile + gap + padding, matches CSS
+    var cols = Math.max(1, Math.ceil(window.innerWidth / boardPx));
+    var rows = Math.max(1, Math.ceil(window.innerHeight / boardPx));
+    wall.style.gridTemplateColumns = "repeat(" + cols + ", " + boardPx + "px)";
+
+    for (var i = 0; i < cols * rows; i++) {
+      var boardEl = document.createElement("div");
+      boardEl.className = "ambient-board";
+      for (var t = 0; t < 16; t++) {
+        boardEl.appendChild(document.createElement("div")).className = "ambient-tile";
+      }
+      wall.appendChild(boardEl);
+
+      var entry = { el: boardEl, board: ambientFreshBoard() };
+      ambientRenderBoard(entry);
+
+      (function (entry) {
+        var tick = function () {
+          ambientTick(entry);
+          setTimeout(tick, 900 + Math.random() * 600);
+        };
+        setTimeout(tick, Math.random() * 1200);
+      })(entry);
+    }
   }
 
   function renderBoard(container, board, big) {
@@ -280,5 +433,6 @@
     }
   });
 
+  initAmbientWall();
   showScreen("screen-name");
 })();

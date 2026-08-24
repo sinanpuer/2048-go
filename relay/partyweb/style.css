@@ -10,9 +10,43 @@ body {
   align-items: center;
   justify-content: center;
   padding: 16px;
+  position: relative;
 }
 
-.screen { width: 100%; max-width: 480px; text-align: center; }
+#ambient-wall {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  overflow: hidden;
+  z-index: -2;
+  pointer-events: none;
+}
+#ambient-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 15, 0.82);
+  z-index: -1;
+  pointer-events: none;
+}
+.ambient-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  padding: 8px;
+}
+.ambient-tile {
+  width: 17px;
+  height: 17px;
+  border-radius: 3px;
+  background: #3a372f;
+  font-size: 8px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.screen { width: 100%; max-width: 480px; text-align: center; position: relative; z-index: 1; }
 .hidden { display: none !important; }
 
 h1 { font-size: 28px; font-weight: 700; margin: 0 0 4px; }
